@@ -29,6 +29,8 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF'
 
+sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+swapoff -a
 setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 systemctl stop firewalld; systemctl disable firewalld

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 swapoff -a
 apt-get update
 
@@ -39,5 +40,7 @@ EOF'
 
 apt-get update
 apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
 echo "runtime-endpoint: unix:///run/containerd/containerd.sock" > /etc/crictl.yaml
 systemctl daemon-reload

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+yum update -y
+
 bash -c 'cat <<EOF > /etc/modules-load.d/containerd.conf
 overlay
 br_netfilter
@@ -10,7 +12,7 @@ modprobe br_netfilter
 
 yum install -y epel-release yum-utils device-mapper-persistent-data lvm2 curl
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum -y update && yum install -y containerd.io
+yum update -y && yum install -y containerd.io
 mkdir -p /etc/containerd
 containerd config default > /etc/containerd/config.toml
 systemctl restart containerd

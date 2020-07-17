@@ -12,25 +12,25 @@ metadata:
 data:
   AAA_MODE: no-auth
   ANALYTICS_API_VIP: ""
-  ANALYTICS_NODES: 192.168.122.10
-  ANALYTICSDB_NODES: 192.168.122.10
-  ANALYTICS_SNMP_NODES: 192.168.122.10
-  ANALYTICS_ALARM_NODES: 192.168.122.10
+  ANALYTICS_NODES: %MASTER_IP%
+  ANALYTICSDB_NODES: %MASTER_IP%
+  ANALYTICS_SNMP_NODES: %MASTER_IP%
+  ANALYTICS_ALARM_NODES: %MASTER_IP%
   AUTH_MODE: noauth
   CLOUD_ORCHESTRATOR: kubernetes
   CONFIG_API_VIP: ""
-  CONFIG_NODES: 192.168.122.10
-  CONFIGDB_NODES: 192.168.122.10
-  CONTROL_NODES: 192.168.122.10
-  CONTROLLER_NODES: 192.168.122.10
+  CONFIG_NODES: %MASTER_IP%
+  CONFIGDB_NODES: %MASTER_IP%
+  CONTROL_NODES: %MASTER_IP%
+  CONTROLLER_NODES: %MASTER_IP%
   KUBERNETES_IP_FABRIC_FORWARDING: "false"
   LOG_LEVEL: SYS_DEBUG
   METADATA_PROXY_SECRET: contrail
-#  PHYSICAL_INTERFACE: ens3
-  RABBITMQ_NODES: 192.168.122.10
+#  PHYSICAL_INTERFACE:
+  RABBITMQ_NODES: %MASTER_IP%
   RABBITMQ_NODE_PORT: "5673"
-#  VROUTER_GATEWAY: 172.30.188.1
-  WEBUI_NODES: 192.168.122.10
+#  VROUTER_GATEWAY:
+  WEBUI_NODES: %MASTER_IP%
   WEBUI_VIP: ""
 ---
 # default params will be set in provisioner environment
@@ -47,7 +47,7 @@ metadata:
   name: configzookeeperenv
   namespace: kube-system
 data:
-  ZOOKEEPER_NODES: 192.168.122.10
+  ZOOKEEPER_NODES: %MASTER_IP%
   ZOOKEEPER_PORT: "2181"
   ZOOKEEPER_PORTS: "2888:3888"
 ---
@@ -66,7 +66,7 @@ metadata:
   namespace: kube-system
 data:
   JVM_EXTRA_OPTS: -Xms1g -Xmx2g
-  CASSANDRA_SEEDS: 192.168.122.10
+  CASSANDRA_SEEDS: %MASTER_IP%
   CASSANDRA_CLUSTER_NAME: Contrail
   CASSANDRA_START_RPC: "true"
   CASSANDRA_LISTEN_ADDRESS: auto
@@ -83,7 +83,7 @@ metadata:
   namespace: kube-system
 data:
   JVM_EXTRA_OPTS: -Xms1g -Xmx2g
-  CASSANDRA_SEEDS: 192.168.122.10
+  CASSANDRA_SEEDS: %MASTER_IP%
   CASSANDRA_CLUSTER_NAME: ContrailConfigDB
   CASSANDRA_START_RPC: "true"
   CASSANDRA_LISTEN_ADDRESS: auto
@@ -107,7 +107,7 @@ metadata:
   name: kube-manager-config
   namespace: kube-system
 data:
-  KUBERNETES_API_SERVER: 192.168.122.10
+  KUBERNETES_API_SERVER: %MASTER_IP%
   KUBERNETES_API_SECURE_PORT: "6443"
   KUBERNETES_IP_FABRIC_SNAT: "true"
   KUBERNETES_PUBLIC_FIP_POOL: "{'domain': 'default-domain', 'project': 'k8s-default', 'network': 'k8s-public', 'name': 'public-fip-pool'}"
@@ -172,7 +172,7 @@ spec:
       - name: zookeeper-logs
         hostPath:
           path: /var/log/contrail/config-zookeeper
-            
+
 ---
 apiVersion: apps/v1
 kind: DaemonSet

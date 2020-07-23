@@ -50,7 +50,7 @@ $ sudo apt-get update
 $ sudo apt-get install helm
 ```
 
-Clone local static provisioner
+Clone local static provisioner repo
 
 ```
 $ git clone --depth=1 https://github.com/kubernetes-sigs/sig-storage-local-static-provisioner.git
@@ -58,7 +58,7 @@ $ cd sig-storage-local-static-provisioner
 $ cp helm/provisioner/values.yaml .
 ```
 
-Edit values.yaml for your enviroment. Here it is an example of what I used. This can create also the StorageClass.
+Edit values.yaml for your enviroment. Here it is an [example](https://github.com/ovaleanujnpr/kubernetes/blob/master/storage/values.yaml) of what I used. This can create also the StorageClass.
 
 Install local-static-provisioner using `helm install`
 

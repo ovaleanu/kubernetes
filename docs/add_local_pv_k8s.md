@@ -10,7 +10,7 @@ Local volumes can only be used as a statically created PersistentVolume. Dynamic
 First, a StorageClass should be created that sets volumeBindingMode: WaitForFirstConsumer to enable volume topology-aware scheduling. This mode instructs Kubernetes to wait to bind a PVC until a Pod using it is scheduled.
 
 ```
-$ cat sc.yaml
+$ cat <<EOF > sc.yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -20,6 +20,8 @@ metadata:
 provisioner: kubernetes.io/no-provisioner
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
+EOF
+$ kubectl create -f sc.yaml
 ```
 Then, the [external static provisioner](https://github.com/kubernetes-sigs/sig-storage-local-static-provisioner#user-guide) can be configured and run to create PVs for all the local disks on your nodes.
 
@@ -58,35 +60,44 @@ $ cd sig-storage-local-static-provisioner
 $ cp helm/provisioner/values.yaml .
 ```
 
-Edit values.yaml for your enviroment. Here it is an [example](https://github.com/ovaleanujnpr/kubernetes/blob/master/storage/values.yaml) of what I used. This can create also the StorageClass.
+Edit values.yaml for your enviroment. Here it is an [example](https://github.com/ovaleanujnpr/kubernetes/blob/master/storage/values.yaml) of what I used.
+
+Create a namespace for storage class
+
+```
+kubectl create ns storageclass
+```
 
 Install local-static-provisioner using `helm install`
 
 ```
-helm install -f ./values.yaml storageclass1 --namespace storageclass ./helm/provisioner
+helm install -f ./values.yaml sc1 --namespace storageclass ./helm/provisioner
 ```
 
 This creates a StorageClass, the local provisioner pods in storageclass namespace who will discover the `\mnt\disks` directories previously created
 
 ```
 $ helm ls -n storageclass
-NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-storageclass1   storageclass    1               2020-07-23 09:15:17.397626789 -0400 EDT deployed        provisioner-3.0.0       2.3.4
+NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+sc1     storageclass    1               2020-07-25 05:56:39.109319438 -0400 EDT deployed        provisioner-3.0.0       2.3.4
 
 $ kubectl get sc
-NAME                 PROVISIONER                    RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
-standard (default)   kubernetes.io/no-provisioner   Delete          WaitForFirstConsumer   false                  37m
+NAME                 PROVISIONER                    AGE
+standard (default)   kubernetes.io/no-provisioner   6m14s
 
 $ kubectl get po -n storageclass
-NAME                              READY   STATUS    RESTARTS   AGE
-storageclass1-provisioner-dpll9   1/1     Running   0          38m
-storageclass1-provisioner-kl9zn   1/1     Running   0          38m
+NAME                    READY   STATUS    RESTARTS   AGE
+sc1-provisioner-d5rl8   1/1     Running   0          6m48s
+sc1-provisioner-wp695   1/1     Running   0          6m48s
 
-root@r9-ru26:~/sig-storage-local-static-provisioner# kubectl get pv
-NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                STORAGECLASS   REASON   AGE
-local-pv-16a99427   62Gi       RWO            Delete           Available                                        standard                38m
-local-pv-1aca0a25   62Gi       RWO            Delete           Available                                        standard                38m
-local-pv-c098a420   62Gi       RWO            Delete           Available                                        standard                38m
+$ kubectl get pv
+NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
+local-pv-16a99427   62Gi       RWO            Delete           Available           standard                12m
+local-pv-1aca0a25   62Gi       RWO            Delete           Available           standard                12m
+local-pv-6ebebd2    62Gi       RWO            Delete           Available           standard                12m
+local-pv-c098a420   62Gi       RWO            Delete           Available           standard                12m
+local-pv-dac58761   62Gi       RWO            Delete           Available           standard                12m
+local-pv-e00b14f6   62Gi       RWO            Delete           Available           standard                12m
 ```
 
 Test with this StatefulSet example

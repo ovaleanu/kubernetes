@@ -75,11 +75,11 @@ classes:
   # or blkdiscard utility by uncommenting the line below.
   #  - "/scripts/blkdiscard.sh"
   # Uncomment to create storage class object with default configuration.
-  storageClass: true
+  # storageClass: true
   # Uncomment to create storage class object and configure it.
-  storageClass:
-    reclaimPolicy: Delete # Available reclaim policies: Delete/Retain, defaults: Delete.
-    isDefaultClass: true # set as default class
+  # storageClass:
+    # reclaimPolicy: Delete # Available reclaim policies: Delete/Retain, defaults: Delete.
+    # isDefaultClass: true # set as default class
 #
 # Configure DaemonSet for provisioner.
 #

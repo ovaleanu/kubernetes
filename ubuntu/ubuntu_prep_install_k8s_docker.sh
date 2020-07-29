@@ -3,6 +3,13 @@
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 swapoff -a
 
+bash -c 'cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF'
+sudo sysctl --system
+
+
 apt-get update && apt-get install -y apt-transport-https ca-certificates curl software-properties-common gnupg2
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
@@ -13,8 +20,8 @@ add-apt-repository \
 
 apt-get update && apt-get install -y \
   containerd.io=1.2.13-2 \
-  docker-ce=5:19.03.11~3-0~ubuntu-$(lsb_release -cs) \
-  docker-ce-cli=5:19.03.11~3-0~ubuntu-$(lsb_release -cs)
+  docker-ce=5:18.09.9~3-0~ubuntu-$(lsb_release -cs) \
+  docker-ce-cli=5:18.09.9~3-0~ubuntu-$(lsb_release -cs)
 
 bash -c 'cat <<EOF > /etc/docker/daemon.json
 {

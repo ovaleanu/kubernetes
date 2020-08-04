@@ -30,9 +30,9 @@ swapoff -a
 setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 systemctl stop firewalld; systemctl disable firewalld
-yum update -y 
+yum update -y
 
-yum install -y containerd.io-1.2.13 docker-ce-19.03.11 docker-ce-cli-19.03.11
+yum install -y containerd.io-1.2.13 docker-ce-18.09.9 docker-ce-cli-18.09.9
 
 mkdir /etc/docker
 
@@ -52,7 +52,7 @@ EOF'
 
 mkdir -p /etc/systemd/system/docker.service.d
 
-systemctl daemon-reload 
+systemctl daemon-reload
 systemctl enable --now docker
 
 yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes

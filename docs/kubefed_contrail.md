@@ -433,7 +433,7 @@ spec:
         value: 5
 ```
 
-Check the pods again. On contrail-2 cluster I have 5 replcas of nginx.
+Check the pods again. On contrail-2 cluster I have 5 replicas of nginx.
 
 ```
 $ for c in `kubectl config get-contexts --no-headers=true -o name|grep -v k8s-cluster-kubefed `; do echo "Getting pods  in context $c"; kubectl get pods -n  kubefed-test  --context=$c; done
@@ -569,7 +569,7 @@ Events:
   Normal  UpdateInCluster  3m7s  federateddeployment-controller  Updating Deployment "kubefed-test/nginx-deployment" in cluster "contrail-2"
 ```
 
-Now I will create a service and then federated. Starting from a simple service yaml file, I am going to generate the FederatedService similar with FederatedDeployment.
+Now I will create a service and then federate it. Starting from a simple service yaml file, I am going to generate the FederatedService similar with FederatedDeployment.
 
 ```
 $ cat nginx-svc.yaml

@@ -1,13 +1,13 @@
 ## Multi-cloud Kubernetes clusters running Contrail with KubeFed
 
-KubeFed is the newest and current soltuion for federation from Kubernetes.
+KubeFed is the newest and current solution for federation from Kubernetes.
 
-For my test I will use 2 Kubernetes clusters running Contrail in different clouds.
+For my test I will use 2 Kubernetes clusters running Contrail.
 What I want to demo?
 1. Deploy KubeFed on a host cluster
-2. Add two K8s clusters running in different clouds
-3. Deploy a simple app via the host cluster and federate it across all the other clusters
-4. Establish end=to-end connectivity to the deployed app.
+2. Join the K8s clusters
+3. Deploy a simple app via the host cluster and federate it on the other cluster
+4. Establish end-to-end connectivity to the deployed app.
 
 Both clusters are running Kubernetes v.18.8. Please refer to installation procedures for mainstream [Kubernetes with Contrail](https://github.com/ovaleanujnpr/Kubernetes/wiki/Installing-Kubernetes-with-Contrail).
 
@@ -16,7 +16,7 @@ The other cluster will be _Member Custer_. This is the cluster which is register
 
 ### Deploy KubeFed on a Host Cluster
 
-First we need to combine all the kubeconfigs and contexts. I am using kubectx to switch between the clusters.
+First I need to combine all the kubeconfigs and contexts. I am using kubectx to switch between the clusters.
 
 Get cluster contexts
 ```
@@ -142,7 +142,7 @@ redis-fjl9f                         1/1     Running   0          2d23h
 
 Installation of KubeFed is pretty straight forward. I followed the installation procedure from [KubeFed github](https://github.com/kubernetes-sigs/kubefed/blob/master/docs/installation.md).
 
-First, I neeed to install Helm. Check the [installation guide](https://helm.sh/docs/intro/install/).
+I neeed to install Helm. Check the [installation guide](https://helm.sh/docs/intro/install/).
 ```
 $ curl https://helm.baltorepo.com/organization/signing.asc | sudo apt-key add -
 $ sudo apt-get install apt-transport-https --yes
@@ -165,7 +165,7 @@ kubefed-charts/kubefed      	0.4.0        	           	KubeFed helm chart
 kubefed-charts/federation-v2	0.0.10       	           	Kubernetes Federation V2 helm chart
 ```
 
-Now I will deploy the help chart
+Now, I will deploy the help chart
 ```
 $ helm --namespace kube-federation-system upgrade -i kubefed kubefed-charts/kubefed --version=0.4.0 --create-namespace
 Release "kubefed" does not exist. Installing it now.
@@ -194,7 +194,7 @@ kubefed-controller-manager-fdb945d8c-ktws6   1/1     Running   0          3d4h
 ### Adding clusters
 
 After KubeFed control plane is install on the _Host Cluster_, it is time to add the other cluster.
-First I need to download `kubefedctl` cli tool.
+For this I need the `kubefedctl` cli tool.
 
 ```
 $ wget https://github.com/kubernetes-sigs/kubefed/releases/download/v0.4.0/kubefedctl-0.4.0-linux-amd64.tgz
@@ -248,9 +248,9 @@ contrail-2      26m     True
 
 ### Deploy a federated app
 
-We have the KubeFed Control Plane up and running with both clusters registered. Now, I am  going to deploy a federated application. This application is a nginx web server serving a welcome page.
+I have the KubeFed Control Plane up and running with both clusters registered. Now, I am  going to deploy a federated application. This application is a nginx web server serving a welcome page.
 
-I will label the nodes that are port of the federation
+I will label the nodes that are part of the federation
 
 ```
 $ kubectl label kubefedclusters -n kube-federation-system contrail-1 federation-enabled=true
@@ -263,9 +263,7 @@ contrail-1   34m   True    federation-enabled=true
 contrail-2   44m   True    federation-enabled=true
 ```
 
-I will create a federate namespace in Host Cluster and then propagate this to Member Cluster
-
-
+I will create a federate namespace in Host Cluster and then propagate it to Member Cluster
 
 ```
 $ kubectl create ns kubefed-test
@@ -292,7 +290,7 @@ $ kubectl --context=contrail-2 get ns | grep kubefed-test
 kubefed-test             Active   9m22s
 ```
 
-Before creating the application objects, we need to enable the types we want to federate, like:
+Before creating the application objects, I need to enable the types I want to federate, like:
 
 `namespaces`
 `services`
@@ -307,3 +305,416 @@ federatedtypeconfig.core.kubefed.io/services updated in namespace kubefed-test
 customresourcedefinition.apiextensions.k8s.io/federateddeployments.types.kubefed.io updated
 federatedtypeconfig.core.kubefed.io/deployments.apps updated in namespace kubefed-test
 ```
+
+I will take a simple nginx deployment like this [one](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment)
+
+```
+$ cat nginx-deployment-simple.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: kubefed-test
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+```
+I will use `kubefedctl` to federate this deployment. It will generate a new yaml file
+
+```
+$ kubefedctl federate -f nginx-deployment-simple.yaml > nginx-deployment-fed.yaml
+$ cat nginx-deployemnt-fed.yaml
+---
+apiVersion: types.kubefed.io/v1beta1
+kind: FederatedDeployment
+metadata:
+  name: nginx-deployment
+  namespace: kubefed-test
+spec:
+  placement:
+    clusterSelector:
+      matchLabels: {}
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: nginx
+      template:
+        metadata:
+          labels:
+            app: nginx
+        spec:
+          containers:
+          - image: nginx:1.14.2
+            name: nginx
+            ports:
+            - containerPort: 80
+```
+
+Apply the new federated yaml file
+
+```
+kubectl create -f nginx-deployemnt-fed.yaml
+```
+
+Three replicas of nginx are running on both clusters
+
+```
+$ for c in `kubectl config get-contexts --no-headers=true -o name|grep -v k8s-cluster-kubefed `; do echo "Getting pods  in context $c"; kubectl get pods -n  kubefed-test  --context=$c; done
+Getting pods  in context contrail-1
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-6b474476c4-vvr6k   1/1     Running   0          3m45s
+nginx-deployment-6b474476c4-w7dgx   1/1     Running   0          3m45s
+nginx-deployment-6b474476c4-xqz4g   1/1     Running   0          3m45s
+Getting pods  in context contrail-2
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-6b474476c4-5crhd   1/1     Running   0          3m45s
+nginx-deployment-6b474476c4-fnvb4   1/1     Running   0          3m45s
+nginx-deployment-6b474476c4-qn2x2   1/1     Running   0          3m45s
+```
+
+I will use the _overrides_ element in FederatedDeployment to scale up replicas for contrail-2 cluster.
+
+```
+kubectl get federateddeployment -n kubefed-test
+NAME               AGE
+nginx-deployment   176m
+lab@master1:~$ kubectl edit federateddeployment/nginx-deployment -n kubefed-test
+federateddeployment.types.kubefed.io/nginx-deployment edited
+```
+Add the `overrides` part like below
+
+```
+spec:
+  placement:
+    clusterSelector:
+      matchLabels: {}
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: nginx
+      template:
+        metadata:
+          labels:
+            app: nginx
+        spec:
+          containers:
+          - image: nginx:1.14.2
+            name: nginx
+            ports:
+            - containerPort: 80
+  overrides:
+    - clusterName: contrail-2
+      clusterOverrides:
+      - path: "/spec/replicas"
+        value: 5
+```
+
+Check the pods again. On contrail-2 cluster I have 5 replcas of nginx.
+
+```
+$ for c in `kubectl config get-contexts --no-headers=true -o name|grep -v k8s-cluster-kubefed `; do echo "Getting pods  in context $c"; kubectl get pods -n  kubefed-test  --context=$c; done
+Getting pods  in context contrail-1
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-6b474476c4-vvr6k   1/1     Running   0          3h1m
+nginx-deployment-6b474476c4-w7dgx   1/1     Running   0          3h1m
+nginx-deployment-6b474476c4-xqz4g   1/1     Running   0          3h1m
+Getting pods  in context contrail-2
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-6b474476c4-5crhd   1/1     Running   0          3h1m
+nginx-deployment-6b474476c4-9d7j5   1/1     Running   0          28s
+nginx-deployment-6b474476c4-fdg6w   1/1     Running   0          28s
+nginx-deployment-6b474476c4-fnvb4   1/1     Running   0          3h1m
+nginx-deployment-6b474476c4-qn2x2   1/1     Running   0          3h1m
+```
+
+The FederatedDeployment in detail:
+
+```
+lab@master1:~$ kubectl describe federateddeployments -n kubefed-test
+Name:         nginx-deployment
+Namespace:    kubefed-test
+Labels:       <none>
+Annotations:  <none>
+API Version:  types.kubefed.io/v1beta1
+Kind:         FederatedDeployment
+Metadata:
+  Creation Timestamp:  2020-09-15T07:46:23Z
+  Finalizers:
+    kubefed.io/sync-controller
+  Generation:  2
+  Managed Fields:
+    API Version:  types.kubefed.io/v1beta1
+    Fields Type:  FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:finalizers:
+          .:
+          v:"kubefed.io/sync-controller":
+      f:status:
+        .:
+        f:clusters:
+        f:conditions:
+        f:observedGeneration:
+    Manager:      controller-manager
+    Operation:    Update
+    Time:         2020-09-15T10:47:50Z
+    API Version:  types.kubefed.io/v1beta1
+    Fields Type:  FieldsV1
+    fieldsV1:
+      f:spec:
+        .:
+        f:overrides:
+        f:placement:
+          .:
+          f:clusterSelector:
+            .:
+            f:matchLabels:
+        f:template:
+          .:
+          f:metadata:
+            .:
+            f:labels:
+              .:
+              f:app:
+          f:spec:
+            .:
+            f:replicas:
+            f:selector:
+              .:
+              f:matchLabels:
+                .:
+                f:app:
+            f:template:
+              .:
+              f:metadata:
+                .:
+                f:labels:
+                  .:
+                  f:app:
+              f:spec:
+                .:
+                f:containers:
+    Manager:         kubectl
+    Operation:       Update
+    Time:            2020-09-15T10:47:50Z
+  Resource Version:  2866408
+  Self Link:         /apis/types.kubefed.io/v1beta1/namespaces/kubefed-test/federateddeployments/nginx-deployment
+  UID:               859d1373-bc0c-4494-8d6a-3f1cebafef21
+Spec:
+  Overrides:
+    Cluster Name:  contrail-2
+    Cluster Overrides:
+      Path:   /spec/replicas
+      Value:  5
+  Placement:
+    Cluster Selector:
+      Match Labels:
+  Template:
+    Metadata:
+      Labels:
+        App:  nginx
+    Spec:
+      Replicas:  3
+      Selector:
+        Match Labels:
+          App:  nginx
+      Template:
+        Metadata:
+          Labels:
+            App:  nginx
+        Spec:
+          Containers:
+            Image:  nginx:1.14.2
+            Name:   nginx
+            Ports:
+              Container Port:  80
+Status:
+  Clusters:
+    Name:  contrail-2
+    Name:  contrail-1
+  Conditions:
+    Last Transition Time:  2020-09-15T07:46:23Z
+    Last Update Time:      2020-09-15T10:47:50Z
+    Status:                True
+    Type:                  Propagation
+  Observed Generation:     2
+Events:
+  Type    Reason           Age   From                            Message
+  ----    ------           ----  ----                            -------
+  Normal  UpdateInCluster  3m7s  federateddeployment-controller  Updating Deployment "kubefed-test/nginx-deployment" in cluster "contrail-1"
+  Normal  UpdateInCluster  3m7s  federateddeployment-controller  Updating Deployment "kubefed-test/nginx-deployment" in cluster "contrail-2"
+```
+
+Now I will create a service and then federated. Starting from a simple service yaml file, I am going to generate the FederatedService similar with FederatedDeployment.
+
+```
+$ cat nginx-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: kubefed-test
+spec:
+  template:
+    spec:
+      selector:
+        app: nginx
+      type: NodePort
+      ports:
+        - name: http
+          port: 80
+
+
+```
+
+```
+kubefedctl federate -f nginx-svc.yaml > nginx-svc-fed.yaml
+```
+
+```
+$ cat nginx-svc-fed.yaml
+---
+apiVersion: types.kubefed.io/v1beta1
+kind: FederatedService
+metadata:
+  name: nginx-service
+  namespace: kubefed-test
+spec:
+  placement:
+    clusterSelector:
+      matchLabels: {}
+  template:
+    spec:
+       selector:
+         app: nginx
+       type: NodePort
+       ports:
+         - name: http
+           port: 80
+```
+Apply the yaml file
+
+```
+$ kubectl create -f nginx-svc-fed.yaml
+federatedservice.types.kubefed.io/nginx-service created
+```
+
+Check if the FederatedService was created on the clusters
+```
+$ for c in `kubectl config get-contexts --no-headers=true -o name|grep -v k8s-cluster-kubefed `; do echo "Getting pods  in context $c"; kubectl get svc -n  kubefed-test  --context=$c; done
+Getting pods  in context contrail-1
+NAME            TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+nginx-service   NodePort   10.107.183.88   <none>        80:31650/TCP   21s
+Getting pods  in context contrail-2
+NAME            TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+nginx-service   NodePort   10.109.126.125   <none>        80:32737/TCP   22s
+```
+
+```
+$ kubectl describe federatedservice -n kubefed-test
+Name:         nginx-service
+Namespace:    kubefed-test
+Labels:       <none>
+Annotations:  <none>
+API Version:  types.kubefed.io/v1beta1
+Kind:         FederatedService
+Metadata:
+  Creation Timestamp:  2020-09-15T11:34:04Z
+  Finalizers:
+    kubefed.io/sync-controller
+  Generation:  1
+  Managed Fields:
+    API Version:  types.kubefed.io/v1beta1
+    Fields Type:  FieldsV1
+    fieldsV1:
+      f:spec:
+        .:
+        f:placement:
+          .:
+          f:clusterSelector:
+            .:
+            f:matchLabels:
+        f:template:
+          .:
+          f:spec:
+            .:
+            f:ports:
+            f:selector:
+              .:
+              f:app:
+            f:type:
+    Manager:      kubectl
+    Operation:    Update
+    Time:         2020-09-15T11:34:04Z
+    API Version:  types.kubefed.io/v1beta1
+    Fields Type:  FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:finalizers:
+          .:
+          v:"kubefed.io/sync-controller":
+      f:status:
+        .:
+        f:clusters:
+        f:conditions:
+        f:observedGeneration:
+    Manager:         controller-manager
+    Operation:       Update
+    Time:            2020-09-15T11:34:05Z
+  Resource Version:  2875296
+  Self Link:         /apis/types.kubefed.io/v1beta1/namespaces/kubefed-test/federatedservices/nginx-service
+  UID:               bdd744ff-5af7-473f-afe1-0d1b91816ab6
+Spec:
+  Placement:
+    Cluster Selector:
+      Match Labels:
+  Template:
+    Spec:
+      Ports:
+        Name:  http
+        Port:  80
+      Selector:
+        App:  nginx
+      Type:   NodePort
+Status:
+  Clusters:
+    Name:  contrail-1
+    Name:  contrail-2
+  Conditions:
+    Last Transition Time:  2020-09-15T11:34:05Z
+    Last Update Time:      2020-09-15T11:34:05Z
+    Status:                True
+    Type:                  Propagation
+  Observed Generation:     1
+Events:
+  Type    Reason           Age    From                         Message
+  ----    ------           ----   ----                         -------
+  Normal  CreateInCluster  6m10s  federatedservice-controller  Creating Service "kubefed-test/nginx-service" in cluster "contrail-2"
+  Normal  CreateInCluster  6m10s  federatedservice-controller  Creating Service "kubefed-test/nginx-service" in cluster "contrail-1"
+```
+
+I have successfully federated a namespace along with a simple deployment, between two Kubernetes clusters running with Contrail.

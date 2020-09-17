@@ -9,7 +9,6 @@ net.bridge.bridge-nf-call-iptables = 1
 EOF'
 sudo sysctl --system
 
-
 apt-get update && apt-get install -y apt-transport-https ca-certificates curl software-properties-common gnupg2
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
@@ -18,11 +17,7 @@ add-apt-repository \
     $(lsb_release -cs) \
     stable"
 
-apt-get update && apt-get install -y \
-  containerd.io=1.2.13-2 \
-  docker-ce=5:18.09.9~3-0~ubuntu-$(lsb_release -cs) \
-  docker-ce-cli=5:18.09.9~3-0~ubuntu-$(lsb_release -cs)
-
+mkdir -p /etc/docker
 bash -c 'cat <<EOF > /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
@@ -33,6 +28,11 @@ bash -c 'cat <<EOF > /etc/docker/daemon.json
   "storage-driver": "overlay2"
 }
 EOF'
+
+apt-get update && apt-get install -y \
+  containerd.io=1.2.13-2 \
+  docker-ce=5:18.09.9~3-0~ubuntu-$(lsb_release -cs) \
+  docker-ce-cli=5:18.09.9~3-0~ubuntu-$(lsb_release -cs)
 
 mkdir -p /etc/systemd/system/docker.service.d
 systemctl daemon-reload
@@ -45,5 +45,5 @@ deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF'
 
 apt-get update
-apt-get install -y kubelet kubeadm kubectl
+apt-get install -y kubelet=1.18.8-00 kubeadm=1.18.8-00 kubectl=1.18.8-00
 apt-mark hold kubelet kubeadm kubectl

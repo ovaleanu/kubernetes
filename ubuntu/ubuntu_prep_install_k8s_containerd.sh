@@ -39,7 +39,7 @@ deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF'
 
 apt-get update
-apt-get install -y kubelet kubeadm kubectl
+apt-get install -y kubelet=1.18.8-00 kubeadm=1.18.8-00 kubectl=1.18.8-00
 sudo apt-mark hold kubelet kubeadm kubectl
 
 echo "runtime-endpoint: unix:///run/containerd/containerd.sock" > /etc/crictl.yaml

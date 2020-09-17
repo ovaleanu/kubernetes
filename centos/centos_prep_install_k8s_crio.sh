@@ -35,7 +35,7 @@ setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 systemctl stop firewalld; systemctl disable firewalld
 
-yum update -y && yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+yum update -y && yum install -y kubelet-1.18.8 kubeadm-1.18.8 kubectl-1.18.8 --disableexcludes=kubernetes
 systemctl enable --now kubelet
 echo "runtime-endpoint: unix:///var/run/crio/crio.sock" > /etc/crictl.yaml
 

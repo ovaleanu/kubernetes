@@ -87,7 +87,7 @@ metadata:
   name: kube-manager-config
   namespace: kube-system
 data:
-  KUBERNETES_API_SERVER: %MASTER_IP%
+  KUBERNETES_API_SERVER: %K8S_API_IP%
   KUBERNETES_API_SECURE_PORT: "6443"
   KUBERNETES_IP_FABRIC_SNAT: "true"
   KUBERNETES_PUBLIC_FIP_POOL: "{'domain': 'default-domain', 'project': 'k8s-default', 'network': 'k8s-public', 'name': 'public-fip-pool'}"

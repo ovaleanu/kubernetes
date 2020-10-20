@@ -490,4 +490,119 @@ root@blue-pod:/# ip a
        valid_lft forever preferred_lft forever
 ```
 
-The pod is running isolated in hist custom network
+The pod is running isolated in his custom network
+
+### Multi interfaces
+
+Contrail has natively the ability to create pods with multi interfaces. This exercise will demonstrate multi-interface pod in Kubernetes with Contrail 2008.
+Create two virtual networks `red-net` and `green-net` in Contrail
+
+```
+$ cd ../exercise6
+
+$ cat red-green-net.yaml
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+ name: red-net
+ annotations:
+   "opencontrail.org/cidr" : "20.20.20.0/24"
+spec:
+ config: '{
+   "cniVersion": "0.3.1",
+   "type": "contrail-k8s-cni"
+}'
+
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+ name: green-net
+ annotations:
+   "opencontrail.org/cidr" : "30.30.30.0/24"
+spec:
+ config: '{
+   "cniVersion": "0.3.1",
+   "type": "contrail-k8s-cni"
+}'
+
+$ kubectl create -f red-green-net.yaml
+```
+
+Now create a pod with network interfaces in both custom networks `red-net` and `green-net`
+
+```
+$ cat ubuntu-multi-nic.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+ name: multi-intf-pod
+ annotations:
+   k8s.v1.cni.cncf.io/networks: '[
+     { "name": "red-net" },
+     { "name": "green-net" }
+   ]'
+spec:
+ containers:
+   - name: ubuntuapp
+     image: ubuntu-upstart
+
+$ kubectl create -f ubuntu-multi-nic.yaml
+$ $ kubectl get pods | grep multi
+multi-intf-pod      1/1     Running   0          5m10s
+```
+
+Connect to the pod to check network interfacea. As you can see the pod has a network interface in each virtual network defined and an interface in default podNetwork.
+
+```
+$ kubectl describe pod/multi-intf-pod
+Name:         multi-intf-pod
+Namespace:    default
+Priority:     0
+Node:         ru16-k8s-node2/172.16.133.155
+Start Time:   Tue, 20 Oct 2020 09:00:05 -0400
+Labels:       <none>
+Annotations:  k8s.v1.cni.cncf.io/network-status:
+                [
+                    {
+                        "ips": "20.20.20.252",
+                        "mac": "02:2c:6f:b2:38:12",
+                        "name": "red-net"
+                    },
+                    {
+                        "ips": "30.30.30.252",
+                        "mac": "02:2c:88:4b:18:12",
+                        "name": "green-net"
+                    },
+                    {
+                        "ips": "10.47.255.224",
+                        "mac": "02:2c:59:66:f4:12",
+                        "name": "cluster-wide-default"
+                    }
+                ]
+              k8s.v1.cni.cncf.io/networks: [ { "name": "red-net" }, { "name": "green-net" } ]
+Status:       Running
+IP:           10.47.255.224
+
+
+$ kubectl exec -it multi-intf-pod -- bash
+root@multi-intf-pod:/# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+2: ip_vti0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN group default qlen 1000
+    link/ipip 0.0.0.0 brd 0.0.0.0
+48: eth0@if49: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+    link/ether 02:2c:59:66:f4:12 brd ff:ff:ff:ff:ff:ff
+    inet 10.47.255.224/12 scope global eth0
+       valid_lft forever preferred_lft forever
+50: eth1@if51: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+    link/ether 02:2c:6f:b2:38:12 brd ff:ff:ff:ff:ff:ff
+    inet 20.20.20.252/24 scope global eth1
+       valid_lft forever preferred_lft forever
+52: eth2@if53: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+    link/ether 02:2c:88:4b:18:12 brd ff:ff:ff:ff:ff:ff
+    inet 30.30.30.252/24 scope global eth2
+       valid_lft forever preferred_lft forever
+```

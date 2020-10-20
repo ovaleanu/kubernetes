@@ -492,7 +492,7 @@ root@blue-pod:/# ip a
 
 The pod is running isolated in his custom network
 
-### Multi interfaces
+### Pod multi interfaces
 
 Contrail has natively the ability to create pods with multi interfaces. This exercise will demonstrate multi-interface pod in Kubernetes with Contrail 2008.
 Create two virtual networks `red-net` and `green-net` in Contrail

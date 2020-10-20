@@ -355,7 +355,7 @@ $ curl 172.16.133.154:32189
 ![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image6.png)
 
 
-You will create two isolated namespaces `dev`, `qa` and spwan some pods in each namespace. The annotation means namspace is isolated.
+You will create two isolated namespaces `dev`, `qa` and spawn some pods in each namespace. The annotation means namspace is isolated. The namespaces will have SNAT enabled.
 ```
 annotations: {
       "opencontrail.org/isolation": "true",
@@ -370,6 +370,7 @@ metadata:
  name: "dev-isolated"
  annotations: {
       "opencontrail.org/isolation": "true",
+      "opencontrail.org/ip_fabric_snat": "true"
 }
 
 $ $ cat ns-qa-isolated.yaml
@@ -379,6 +380,7 @@ metadata:
  name: "qa-isolated"
  annotations: {
       "opencontrail.org/isolation": "true",
+      "opencontrail.org/ip_fabric_snat": "true"
 }
 
 $ kubectl create -f ns-dev-isolated.yaml
@@ -445,8 +447,10 @@ apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
 metadata:
  name: blue-net
- annotations:
-   "opencontrail.org/cidr" : "10.10.10.0/24"
+ annotations: {
+   "opencontrail.org/cidr" : "10.10.10.0/24",
+   "opencontrail.org/ip_fabric_snat": "true"
+   }
 spec:
  config: '{
    "cniVersion": "0.3.1",
@@ -505,8 +509,10 @@ apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
 metadata:
  name: red-net
- annotations:
-   "opencontrail.org/cidr" : "20.20.20.0/24"
+ annotations: {
+   "opencontrail.org/cidr" : "20.20.20.0/24",
+   "opencontrail.org/ip_fabric_snat": "true"
+   }
 spec:
  config: '{
    "cniVersion": "0.3.1",
@@ -518,8 +524,10 @@ apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
 metadata:
  name: green-net
- annotations:
-   "opencontrail.org/cidr" : "30.30.30.0/24"
+ annotations: {
+   "opencontrail.org/cidr" : "30.30.30.0/24",
+   "opencontrail.org/ip_fabric_snat": "true"
+  }
 spec:
  config: '{
    "cniVersion": "0.3.1",

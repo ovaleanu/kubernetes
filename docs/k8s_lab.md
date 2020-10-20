@@ -314,21 +314,11 @@ The Kubernetes Dasboard we accessed it using NodePort services.
 $ cd ../exercise3
 $ cat rc-frontend.yaml
 $ kubectl create -f rc-frontend.yaml
-$ $ kubectl get pods -o wide
+$ $ kubectl get pods -o wide | grep np
 NAME                READY   STATUS    RESTARTS   AGE   IP              NODE             NOMINATED NODE   READINESS GATES
-frontend-8pr7f      1/1     Running   0          55m   10.47.255.243   ru16-k8s-node1   <none>           <none>
-frontend-l6tdw      1/1     Running   0          55m   10.47.255.241   ru16-k8s-node3   <none>           <none>
-frontend-vrlz9      1/1     Running   0          55m   10.47.255.242   ru16-k8s-node2   <none>           <none>
 np-example-7z69r    1/1     Running   0          12s   10.47.255.233   ru16-k8s-node2   <none>           <none>
 np-example-b45js    1/1     Running   0          12s   10.47.255.231   ru16-k8s-node1   <none>           <none>
 np-example-sf8s6    1/1     Running   0          12s   10.47.255.232   ru16-k8s-node3   <none>           <none>
-ubuntuapp           1/1     Running   0          56m   10.47.255.244   ru16-k8s-node2   <none>           <none>
-web-app-dev-8thq8   1/1     Running   0          46m   10.47.255.240   ru16-k8s-node2   <none>           <none>
-web-app-dev-jqc68   1/1     Running   0          46m   10.47.255.238   ru16-k8s-node1   <none>           <none>
-web-app-dev-lkkrl   1/1     Running   0          46m   10.47.255.239   ru16-k8s-node3   <none>           <none>
-web-app-qa-kt6qx    1/1     Running   0          45m   10.47.255.236   ru16-k8s-node2   <none>           <none>
-web-app-qa-pw9b9    1/1     Running   0          45m   10.47.255.237   ru16-k8s-node3   <none>           <none>
-web-app-qa-wf55s    1/1     Running   0          45m   10.47.255.235   ru16-k8s-node1   <none>           <none>
 
 $ kubectl expose rc/np-example --name=np-svc --type=NodePort
 $ kubectl get svc -o wide
@@ -380,7 +370,7 @@ metadata:
  name: "dev-isolated"
  annotations: {
       "opencontrail.org/isolation": "true",
- }
+}
 
 $ $ cat ns-qa-isolated.yaml
 apiVersion: v1
@@ -389,7 +379,7 @@ metadata:
  name: "qa-isolated"
  annotations: {
       "opencontrail.org/isolation": "true",
- }
+}
 
 $ kubectl create -f ns-dev-isolated.yaml
 $ kubectl create -f ns-qa-isolated.yaml
@@ -443,3 +433,61 @@ $ kubectl exec ubuntuapp -- curl web-app-qa.qa-isolated
 ```
 
 Communication fails. In isolation mode, PODs cannot reach PODs from different namespaces.
+
+**Custom Mode ** allows users to interconnect their workloads with other Infrastructure services tools like OpenStack, vCenter, BMS or Public Clouds.
+
+You will create a new virtual network called blue-net with one subnet such as 10.10.10.0/24.
+
+```
+$ cd../exercise5
+$ cat blue-net.yaml
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+ name: blue-net
+ annotations:
+   "opencontrail.org/cidr" : "10.10.10.0/24"
+spec:
+ config: '{
+   "cniVersion": "0.3.1",
+   "type": "contrail-k8s-cni"
+}'
+
+$ kubectl create -f blue-net.yaml
+```
+
+Now you will create a pod in this virtual network
+
+```
+$ cat blue-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+ name: blue-pod
+ annotations: {
+    "opencontrail.org/network" : '{"domain":"default-domain", "project": "k8s-default", "name":"k8s-blue-net-pod-network"}'
+  }
+spec:
+ containers:
+   - name: ubuntuapp
+     image: ubuntu-upstart
+
+$ kubectl create -f blue-pod.yaml
+$ kubectl get pods -o wide| grep blue
+blue-pod            1/1     Running   0          12s    10.10.10.252    ru16-k8s-node3   <none>           <none>
+
+$ kubectl exec -it blue-pod -- bash
+root@blue-pod:/# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+2: ip_vti0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN group default qlen 1000
+    link/ipip 0.0.0.0 brd 0.0.0.0
+42: eth0@if43: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+    link/ether 02:71:c1:6f:a4:12 brd ff:ff:ff:ff:ff:ff
+    inet 10.10.10.252/24 scope global eth0
+       valid_lft forever preferred_lft forever
+```
+
+The pod is running isolated in hist custom network

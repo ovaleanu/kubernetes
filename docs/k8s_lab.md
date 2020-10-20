@@ -175,3 +175,132 @@ $ kubectl exec ubuntuapp -- curl frontend
 One evolution of previous construct is per-URL load balancing
 
 ![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image5.png)
+
+```
+$ cd ../exercise2
+$ cat rc-frontend-dev.yaml
+$ cat rc-frontend-qa.yam
+$ kubectl create -f rc-frontend-dev.yaml
+$ kubectl create -f rc-frontend-qa.yaml
+$ kubectl get pods -o wide
+NAME                READY   STATUS    RESTARTS   AGE   IP              NODE             NOMINATED NODE   READINESS GATES
+frontend-8pr7f      1/1     Running   0          47m   10.47.255.243   ru16-k8s-node1   <none>           <none>
+frontend-l6tdw      1/1     Running   0          47m   10.47.255.241   ru16-k8s-node3   <none>           <none>
+frontend-vrlz9      1/1     Running   0          47m   10.47.255.242   ru16-k8s-node2   <none>           <none>
+ubuntuapp           1/1     Running   0          48m   10.47.255.244   ru16-k8s-node2   <none>           <none>
+web-app-dev-8thq8   1/1     Running   0          37m   10.47.255.240   ru16-k8s-node2   <none>           <none>
+web-app-dev-jqc68   1/1     Running   0          37m   10.47.255.238   ru16-k8s-node1   <none>           <none>
+web-app-dev-lkkrl   1/1     Running   0          37m   10.47.255.239   ru16-k8s-node3   <none>           <none>
+web-app-qa-kt6qx    1/1     Running   0          37m   10.47.255.236   ru16-k8s-node2   <none>           <none>
+web-app-qa-pw9b9    1/1     Running   0          37m   10.47.255.237   ru16-k8s-node3   <none>           <none>
+web-app-qa-wf55s    1/1     Running   0          37m   10.47.255.235   ru16-k8s-node1   <none>           <none>
+
+$ cat svc-frontend-dev.yaml
+$ cat svc-frontend-qa.yaml
+$ kubectl create -f svc-frontend-dev.yaml
+$ kubectl create -f svc-frontend-qa.yaml
+$ kubectl get svc
+NAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+frontend      ClusterIP   10.98.129.6     <none>        80/TCP    42m
+kubernetes    ClusterIP   10.96.0.1       <none>        443/TCP   15h
+web-app-dev   ClusterIP   10.104.62.209   <none>        80/TCP    38m
+web-app-qa    ClusterIP   10.108.195.59   <none>        80/TCP    38m
+```
+
+Now check basic load balancing within each service and look for the ip addresses.
+
+```
+$ kubectl exec ubuntuapp -- curl web-app-dev
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+<html>
+<style>
+  h1   {color:green}
+  h2   {color:blue}
+</style>
+  <div align="center">
+  <head>
+    <title>DEV Pod</title>
+  </head>
+  <body>
+    <h1>Hello</h1><br><h2>This page is served by a nginx pod in <b>DEV</b> namespace</h2><br><h3>IP address = 10.47.255.240<br>Hostname = web-app-dev-8thq8</h3>
+  </body>
+  </div>
+</html>
+100   332  100   332    0     0  27179      0 --:--:-- --:--:-- --:--:-- 27666
+
+$ kubectl exec ubuntuapp -- curl web-app-qa
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+<html>
+<style>
+  h1   {color:green}
+  h2   {color:blue}
+</style>
+  <div align="center">
+  <head>
+    <title>QA Pod</title>
+  </head>
+  <body>
+    <h1>Hello</h1><br><h2>This page is served by a nginx pod in <b>QA</b> namespace</h2><br><h3>IP address = 10.47.255.235<br>Hostname = web-app-qa-wf55s</h3>
+  </body>
+  </div>
+</html>
+100   329  100   329    0     0  22802      0 --:--:-- --:--:-- --:--:-- 23500
+```
+
+Now create the URL based load balancer
+
+```
+$ cat ingress-frontend.yaml
+$ kubectl create -f ingress-frontend.yaml
+$ kubectl get ingress
+NAME             CLASS    HOSTS   ADDRESS         PORTS   AGE
+name-based-ing   <none>   *       10.47.255.234   80      40m
+```
+
+Check the IP address of the ingress construct, and verify per-URL load balancing
+
+```
+$ kubectl exec ubuntuapp -- curl 10.47.255.234/dev
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+<html>
+<style>
+  h1   {color:green}
+  h2   {color:blue}
+</style>
+  <div align="center">
+  <head>
+    <title>DEV Pod</title>
+  </head>
+  <body>
+    <h1>Hello</h1><br><h2>This page is served by a nginx pod in <b>DEV</b> namespace</h2><br><h3>IP address = 10.47.255.238<br>Hostname = web-app-dev-jqc68</h3>
+  </body>
+  </div>
+</html>
+100   332  100   332    0     0  28786      0 --:--:-- --:--:-- --:--:-- 30181
+
+$ kubectl exec ubuntuapp -- curl 10.47.255.234/qa
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+<html>
+<style>
+  h1   {color:green}
+  h2   {color:blue}
+</style>
+  <div align="center">
+  <head>
+    <title>QA Pod</title>
+  </head>
+  <body>
+    <h1>Hello</h1><br><h2>This page is served by a nginx pod in <b>QA</b> namespace</h2><br><h3>IP address = 10.47.255.235<br>Hostname = web-app-qa-wf55s</h3>
+  </body>
+  </div>
+</html>
+100   329  100   329    0     0  31910      0 --:--:-- --:--:-- --:--:-- 32900
+```

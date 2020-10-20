@@ -304,3 +304,55 @@ $ kubectl exec ubuntuapp -- curl 10.47.255.234/qa
 </html>
 100   329  100   329    0     0  31910      0 --:--:-- --:--:-- --:--:-- 32900
 ```
+
+### NodePort services
+
+Another way to load balance a service is using a NodePort service. When a service is exposed using NodePort the service is reachable on via the [HOSTIP:PORT_NUMBER]
+
+```
+$ cd ../exercise3
+$ cat rc-frontend.yaml
+$ kubectl create -f rc-frontend.yaml
+$ $ kubectl get pods -o wide
+NAME                READY   STATUS    RESTARTS   AGE   IP              NODE             NOMINATED NODE   READINESS GATES
+frontend-8pr7f      1/1     Running   0          55m   10.47.255.243   ru16-k8s-node1   <none>           <none>
+frontend-l6tdw      1/1     Running   0          55m   10.47.255.241   ru16-k8s-node3   <none>           <none>
+frontend-vrlz9      1/1     Running   0          55m   10.47.255.242   ru16-k8s-node2   <none>           <none>
+np-example-7z69r    1/1     Running   0          12s   10.47.255.233   ru16-k8s-node2   <none>           <none>
+np-example-b45js    1/1     Running   0          12s   10.47.255.231   ru16-k8s-node1   <none>           <none>
+np-example-sf8s6    1/1     Running   0          12s   10.47.255.232   ru16-k8s-node3   <none>           <none>
+ubuntuapp           1/1     Running   0          56m   10.47.255.244   ru16-k8s-node2   <none>           <none>
+web-app-dev-8thq8   1/1     Running   0          46m   10.47.255.240   ru16-k8s-node2   <none>           <none>
+web-app-dev-jqc68   1/1     Running   0          46m   10.47.255.238   ru16-k8s-node1   <none>           <none>
+web-app-dev-lkkrl   1/1     Running   0          46m   10.47.255.239   ru16-k8s-node3   <none>           <none>
+web-app-qa-kt6qx    1/1     Running   0          45m   10.47.255.236   ru16-k8s-node2   <none>           <none>
+web-app-qa-pw9b9    1/1     Running   0          45m   10.47.255.237   ru16-k8s-node3   <none>           <none>
+web-app-qa-wf55s    1/1     Running   0          45m   10.47.255.235   ru16-k8s-node1   <none>           <none>
+
+$ kubectl expose rc/np-example --name=np-svc --type=NodePort
+$ kubectl get svc -o wide
+NAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE   SELECTOR
+frontend      ClusterIP   10.98.129.6     <none>        80/TCP         50m   app=frontend
+kubernetes    ClusterIP   10.96.0.1       <none>        443/TCP        15h   <none>
+np-svc        NodePort    10.96.197.199   <none>        80:32189/TCP   15s   app=frontend
+web-app-dev   ClusterIP   10.104.62.209   <none>        80/TCP         46m   app=web-app-dev
+web-app-qa    ClusterIP   10.108.195.59   <none>        80/TCP         46m   app=web-app-qa
+
+$ curl 172.16.133.154:32189
+
+<html>
+<style>
+  h1   {color:green}
+  h2   {color:red}
+</style>
+  <div align="center">
+  <head>
+    <title>Contrail Pod</title>
+  </head>
+  <body>
+    <h1>Hello</h1><br><h2>This page is served by a <b>Contrail</b> pod</h2><br><h3>IP address = 10.47.255.241<br>Hostname = frontend-l6tdw</h3>
+    <img src="/static/giphy.gif">
+  </body>
+  </div>
+</html>
+```

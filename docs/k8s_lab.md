@@ -78,51 +78,18 @@ You will create an ubuntu pod and three ReplicationControllers.
 ```
 $ cd exercise1
 $ cat ubuntu.yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ubuntuapp
-  labels:
-    app: ubuntuapp
-spec:
-  containers:
-    - name: ubuntuapp
-      image: ubuntu-upstart
-      command: ["/bin/bash","-c","while true; do sleep 10;done"]
-
 $ kubectl create -f ubuntu.yaml
-
 $ cat rc-frontend.yaml
-apiVersion: v1
-kind: ReplicationController
-metadata:
-  name: frontend
-spec:
-  replicas: 3
-  selector:
-    app: frontend
-  template:
-    metadata:
-      name: frontend
-      labels:
-        app: frontend
-    spec:
-      containers:
-      - name: frontend
-        image: savvythru/contrail-frontend-app
-        ports:
-        - containerPort: 80
-
 $ kubectl create -f rc-frontend.yaml
-
-$ NAME                READY   STATUS    RESTARTS   AGE   IP              NODE             NOMINATED NODE   READINESS GATES
+$ kubectl get pods -o wide
+NAME                READY   STATUS    RESTARTS   AGE   IP              NODE             NOMINATED NODE   READINESS GATES
 frontend-8pr7f      1/1     Running   0          23m   10.47.255.243   ru16-k8s-node1   <none>           <none>
 frontend-l6tdw      1/1     Running   0          23m   10.47.255.241   ru16-k8s-node3   <none>           <none>
 frontend-vrlz9      1/1     Running   0          23m   10.47.255.242   ru16-k8s-node2   <none>           <none>
 ubuntuapp           1/1     Running   0          24m   10.47.255.244   ru16-k8s-node2   <none>           <none>
 ```
 
-Check connectivity betwwen the pods. So far there is no load balancing, there is simple any-to-any connectivity.
+Check connectivity between the pods. So far there is no load balancing, there is simple any-to-any connectivity.
 
 ```
 $ kubectl exec ubuntuapp -- ping 10.47.255.243
@@ -135,3 +102,76 @@ PING 10.47.255.241 (10.47.255.241) 56(84) bytes of data.
 64 bytes from 10.47.255.241: icmp_seq=1 ttl=63 time=1.15 ms
 64 bytes from 10.47.255.241: icmp_seq=2 ttl=63 time=0.690 ms
 ```
+
+Install curl in `ubuntuapp` pod. You will need it later.
+
+```
+$ kubectl exec -it ubuntuapp -- bash
+root@ubuntuapp:/# apt-get update
+root@ubuntuapp:/# apt install curl
+```
+
+Now create a load balancing construct, by exposing the frontend service
+
+![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image4.png)
+
+```
+$ kubectl expose rc/frontend
+
+$ kubectl get svc
+NAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+frontend      ClusterIP   10.98.129.6     <none>        80/TCP    5m2s
+kubernetes    ClusterIP   10.96.0.1       <none>        443/TCP   15h
+```
+
+By repeatedly checking the output of the following command, you will see a changing IP address that proves load balancing.
+
+```
+$ kubectl exec ubuntuapp -- curl frontend
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   353  100   353    0     0  28114      0 --:--:-- --:--:-- --:--:-- 29416
+
+<html>
+<style>
+  h1   {color:green}
+  h2   {color:red}
+</style>
+  <div align="center">
+  <head>
+    <title>Contrail Pod</title>
+  </head>
+  <body>
+    <h1>Hello</h1><br><h2>This page is served by a <b>Contrail</b> pod</h2><br><h3>IP address = 10.47.255.241<br>Hostname = frontend-l6tdw</h3>
+    <img src="/static/giphy.gif">
+  </body>
+  </div>
+</html>
+
+$ kubectl exec ubuntuapp -- curl frontend
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+<html>
+<style>
+  h1   {color:green}
+  h2   {color:red}
+</style>
+  <div align="center">
+  <head>
+    <title>Contrail Pod</title>
+  </head>
+  <body>
+    <h1>Hello</h1><br><h2>This page is served by a <b>Contrail</b> pod</h2><br><h3>IP address = 10.47.255.242<br>Hostname = frontend-vrlz9</h3>
+    <img src="/static/giphy.gif">
+  </body>
+  </div>
+</html>
+100   353  100   353    0     0  25268      0 --:--:-- --:--:-- --:--:-- 27153
+```
+
+### URL Based Load Balancers
+
+One evolution of previous construct is per-URL load balancing
+
+![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image5.png)

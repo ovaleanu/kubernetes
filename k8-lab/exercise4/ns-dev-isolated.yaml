@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+ name: "dev-isolated"
+ annotations: {
+      "opencontrail.org/isolation": "true",
+      "opencontrail.org/ip_fabric_snat": "true"
+ }

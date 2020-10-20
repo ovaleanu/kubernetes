@@ -307,7 +307,8 @@ $ kubectl exec ubuntuapp -- curl 10.47.255.234/qa
 
 ### NodePort services
 
-Another way to load balance a service is using a NodePort service. When a service is exposed using NodePort the service is reachable on via the [HOSTIP:PORT_NUMBER]
+Another way to load balance a service is using a NodePort service. When a service is exposed using NodePort the service is reachable on via the [HOSTIP:PORT_NUMBER].
+The Kubernetes Dasboard we accessed it using NodePort services.
 
 ```
 $ cd ../exercise3

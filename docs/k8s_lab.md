@@ -357,3 +357,89 @@ $ curl 172.16.133.154:32189
   </div>
 </html>
 ```
+
+### Isolation (Namespace and Custom)
+
+**Isolated Namespace** has its own default pod-network and service-network, including two new VRFs are also created for each isolated namspace. The same flat-subnets '10.32.0.0/12' and '10.96.0.0/12' are shared by the pod and service networks in the isolated namespaces. However, since the networks are with a different VRF, by default it is isolated with other NS. Pods launched in isolated NS can only talk to service and pods on the same namespace. Additional configurations, e.g. policy, is required to enable the pod to reach the network outside of the current namespace.
+
+![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image6.png)
+
+
+You will create two isolated namespaces `dev`, `qa` and spwan some pods in each namespace. The annotation means namspace is isolated.
+```
+annotations: {
+      "opencontrail.org/isolation": "true",
+```
+
+```
+$ cd ../exercise4
+$ cat ns-dev-isolated.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+ name: "dev-isolated"
+ annotations: {
+      "opencontrail.org/isolation": "true",
+ }
+
+$ $ cat ns-qa-isolated.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+ name: "qa-isolated"
+ annotations: {
+      "opencontrail.org/isolation": "true",
+ }
+
+$ kubectl create -f ns-dev-isolated.yaml
+$ kubectl create -f ns-qa-isolated.yaml
+
+$ kubectl get ns | grep isolated
+dev-isolated           Active   16m
+qa-isolated            Active   15m
+
+$ kubectl create -f rc-frontend-dev.yaml -n dev-isolated
+$ kubectl create -f rc-frontend-qa.yaml -n qa-isolated
+$ kubectl create -f svc-frontend-dev.yaml -n dev-isolated
+$ kubectl create -f svc-frontend-qa.yaml -n qa-isolated
+
+$ kubectl get all -n dev-isolated
+NAME                    READY   STATUS    RESTARTS   AGE
+pod/web-app-dev-66h4n   1/1     Running   0          49s
+pod/web-app-dev-hb58f   1/1     Running   0          49s
+pod/web-app-dev-kwj5j   1/1     Running   0          49s
+
+NAME                                DESIRED   CURRENT   READY   AGE
+replicationcontroller/web-app-dev   3         3         3       49s
+
+NAME                  TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/web-app-dev   ClusterIP   10.105.134.59   <none>        80/TCP    36s
+
+$ kubectl get all -n qa-isolated
+NAME                   READY   STATUS    RESTARTS   AGE
+pod/web-app-qa-2b89l   1/1     Running   0          48s
+pod/web-app-qa-c6g48   1/1     Running   0          48s
+pod/web-app-qa-klmnr   1/1     Running   0          48s
+
+NAME                               DESIRED   CURRENT   READY   AGE
+replicationcontroller/web-app-qa   3         3         3       48s
+
+NAME                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+service/web-app-qa   ClusterIP   10.109.233.177   <none>        80/TCP    36s
+```
+
+Check if you can ping using ubuntuapp pod any frontend from `qa` and `dev` namespaces
+
+```
+$ kubectl exec ubuntuapp -- curl web-app-dev.dev-isolated
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:--  0:00:05 --:--:--     0^C
+
+$ kubectl exec ubuntuapp -- curl web-app-qa.qa-isolated
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0^C
+```
+
+Communication fails. In isolation mode, PODs cannot reach PODs from different namespaces.

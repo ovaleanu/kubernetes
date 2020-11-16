@@ -714,4 +714,4 @@ Events:
   Normal  CreateInCluster  6m10s  federatedservice-controller  Creating Service "kubefed-test/nginx-service" in cluster "contrail-1"
 ```
 
-I have successfully federated a namespace along with a simple deployment, between two Kubernetes clusters running with Contrail.
+I have successfully federated a namespace along with a simple deployment and a service, between two Kubernetes clusters running with Contrail.

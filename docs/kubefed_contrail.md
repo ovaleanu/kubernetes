@@ -579,15 +579,12 @@ metadata:
   name: nginx-service
   namespace: kubefed-test
 spec:
-  template:
-    spec:
-      selector:
-        app: nginx
-      type: NodePort
-      ports:
-        - name: http
-          port: 80
-
+  selector:
+    app: nginx
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
 
 ```
 
@@ -609,12 +606,12 @@ spec:
       matchLabels: {}
   template:
     spec:
-       selector:
-         app: nginx
-       type: NodePort
-       ports:
-         - name: http
-           port: 80
+      ports:
+      - name: http
+        port: 80
+      selector:
+        app: nginx
+      type: NodePort
 ```
 Apply the yaml file
 

@@ -372,7 +372,7 @@ spec:
 Apply the new federated yaml file
 
 ```
-kubectl create -f nginx-deployemnt-fed.yaml
+kubectl create -f nginx-deployment-fed.yaml
 ```
 
 Three replicas of nginx are running on both clusters

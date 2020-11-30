@@ -498,7 +498,7 @@ The pod is running isolated in his custom network
 
 ### Multitenancy
 
-You will combine exercise 4 and exercise 5 demonstrating multitennacy in Contrail. In K8s namesapces coreponds to tenants. You will create in the isolated namespaces `dev-isolated` and `qa-isolated` a virtual network with the same name and the same ip range. The namespaces `dev-isolated` and `qa-isolated` are two different tenants.
+You will combine exercise 4 and exercise 5 demonstrating multitenacy in Contrail. In K8s namespaces coreponds to tenants. You will create in the isolated namespaces `dev-isolated` and `qa-isolated` a virtual network with the same name and the same ip range. The namespaces `dev-isolated` and `qa-isolated` are two different tenants.
 
 ```
 $ cd../exercise6

@@ -500,6 +500,7 @@ The pod is running isolated in his custom network
 
 You will combine exercise 4 and exercise 5 demonstrating multitennacy in Contrail. In K8s namesapces coreponds to tenants. You will create in the isolated namespaces `dev-isolated` and `qa-isolated` a virtual network with the same name and the same ip range. The namespaces `dev-isolated` and `qa-isolated` are two different tenants.
 
+```
 $ cd../exercise6
 $ cat blue-net-dev-isolated.yaml
 apiVersion: "k8s.cni.cncf.io/v1"
@@ -532,6 +533,7 @@ spec:
    "cniVersion": "0.3.1",
    "type": "contrail-k8s-cni"
 }'
+```
 
 In Contrail UI it will look like this
 
@@ -543,6 +545,7 @@ In Contrail UI it will look like this
 
 Create a pod in each of the virtual networks
 
+```
 $ cat blue-pod-dev-isolated.yaml
 apiVersion: v1
 kind: Pod
@@ -573,15 +576,18 @@ spec:
 
 $ kubectl create -f blue-pod-dev-isolated.yaml
 $ kubectl create -f blue-pod-qa-isolated.yaml
+```
 
 A pod with the same ip address will run in each virtual network having the same name and ip range, but in different namespaces
 
+```
 $ kubectl get po -n dev-isolated -o wide
 NAME           READY   STATUS    RESTARTS   AGE     IP             NODE        NOMINATED NODE   READINESS GATES
 blue-pod-dev   1/1     Running   0          2m36s   10.10.10.252   k8s-node1   <none>           <none>
 $ kubectl get po -n qa-isolated -o wide
 NAME       READY   STATUS    RESTARTS   AGE     IP             NODE        NOMINATED NODE   READINESS GATES
 blue-pod-qa    1/1     Running   0          2m37s   10.10.10.252   k8s-node2   <none>           <none>
+```
 
 
 ### Pod multi interfaces

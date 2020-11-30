@@ -3,7 +3,7 @@
 Download the lab folder.
 
 ```
-$ git clone clone https://github.com/ovaleanujnpr/k8-lab
+$ git clone https://github.com/ovaleanujnpr/k8-lab
 $ cd k8s-lab
 ```
 

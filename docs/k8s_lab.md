@@ -438,17 +438,17 @@ Communication fails. In isolation mode, PODs cannot reach PODs from different na
 
 **Custom Mode ** allows users to interconnect their workloads with other Infrastructure services tools like OpenStack, vCenter, BMS or Public Clouds.
 
-You will create a new virtual network called blue-net with one subnet such as 10.10.10.0/24.
+You will create a new virtual network called orange-net with one subnet such as 50.50.50.0/24.
 
 ```
 $ cd../exercise5
-$ cat blue-net.yaml
+$ cat orange-net.yaml
 apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
 metadata:
- name: blue-net
+ name: orange-net
  annotations: {
-   "opencontrail.org/cidr" : "10.10.10.0/24",
+   "opencontrail.org/cidr" : "50.50.50.0/24",
    "opencontrail.org/ip_fabric_snat": "true"
    }
 spec:
@@ -467,21 +467,21 @@ $ cat blue-pod.yaml
 apiVersion: v1
 kind: Pod
 metadata:
- name: blue-pod
+ name: orange-pod
  annotations: {
-    "opencontrail.org/network" : '{"domain":"default-domain", "project": "k8s-default", "name":"k8s-blue-net-pod-network"}'
+    "opencontrail.org/network" : '{"domain":"default-domain", "project": "k8s-default", "name":"k8s-orange-net-pod-network"}'
   }
 spec:
  containers:
    - name: ubuntuapp
      image: ubuntu-upstart
 
-$ kubectl create -f blue-pod.yaml
+$ kubectl create -f orange-pod.yaml
 $ kubectl get pods -o wide| grep blue
-blue-pod            1/1     Running   0          12s    10.10.10.252    ru16-k8s-node3   <none>           <none>
+orange-pod            1/1     Running   0          12s    50.50.50.252    ru16-k8s-node3   <none>           <none>
 
-$ kubectl exec -it blue-pod -- bash
-root@blue-pod:/# ip a
+$ kubectl exec -it orange-pod -- bash
+root@orange-pod:/# ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
     inet 127.0.0.1/8 scope host lo
@@ -490,11 +490,99 @@ root@blue-pod:/# ip a
     link/ipip 0.0.0.0 brd 0.0.0.0
 42: eth0@if43: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
     link/ether 02:71:c1:6f:a4:12 brd ff:ff:ff:ff:ff:ff
-    inet 10.10.10.252/24 scope global eth0
+    inet 50.50.50.252/24 scope global eth0
        valid_lft forever preferred_lft forever
 ```
 
 The pod is running isolated in his custom network
+
+### Multitenancy
+
+You will combine exercise 4 and exercise 5 demonstrating multitennacy in Contrail. In K8s namesapces coreponds to tenants. You will create in the isolated namespaces `dev-isolated` and `qa-isolated` a virtual network with the same name and the same ip range. The namespaces `dev-isolated` and `qa-isolated` are two different tenants.
+
+$ cd../exercise6
+$ cat blue-net-dev-isolated.yaml
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+ name: blue-net
+ namespace: dev-isolated
+ annotations: {
+   "opencontrail.org/cidr" : "10.10.10.0/24",
+   "opencontrail.org/ip_fabric_snat": "true"
+   }
+spec:
+ config: '{
+   "cniVersion": "0.3.1",
+   "type": "contrail-k8s-cni"
+}'
+
+$ cat blue-net-qa-isolated.yaml
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+ name: blue-net
+ namespace: qa-isolated
+ annotations: {
+   "opencontrail.org/cidr" : "10.10.10.0/24",
+   "opencontrail.org/ip_fabric_snat": "true"
+   }
+spec:
+ config: '{
+   "cniVersion": "0.3.1",
+   "type": "contrail-k8s-cni"
+}'
+
+In Contrail UI it will look like this
+
+![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image7.png)
+
+
+![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image8.png)
+
+
+Create a pod in each of the virtual networks
+
+$ cat blue-pod-dev-isolated.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+ name: blue-pod-dev
+ namespace: dev-isolated
+ annotations: {
+    "opencontrail.org/network" : '{"domain":"default-domain", "project": "k8s-dev-isolated", "name":"k8s-blue-net-pod-network"}'
+  }
+spec:
+ containers:
+   - name: ubuntuapp
+     image: ubuntu-upstart
+
+$ cat blue-pod-qa-isolated.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+ name: blue-pod-qa
+ namespace: qa-isolated
+ annotations: {
+    "opencontrail.org/network" : '{"domain":"default-domain", "project": "k8s-qa-isolated", "name":"k8s-blue-net-pod-network"}'
+  }
+spec:
+ containers:
+   - name: ubuntuapp
+     image: ubuntu-upstart
+
+$ kubectl create -f blue-pod-dev-isolated.yaml
+$ kubectl create -f blue-pod-qa-isolated.yaml
+
+A pod with the same ip address will run in each virtual network having the same name and ip range, but in different namespaces
+
+$ kubectl get po -n dev-isolated -o wide
+NAME           READY   STATUS    RESTARTS   AGE     IP             NODE        NOMINATED NODE   READINESS GATES
+blue-pod-dev   1/1     Running   0          2m36s   10.10.10.252   k8s-node1   <none>           <none>
+$ kubectl get po -n qa-isolated -o wide
+NAME       READY   STATUS    RESTARTS   AGE     IP             NODE        NOMINATED NODE   READINESS GATES
+blue-pod-qa    1/1     Running   0          2m37s   10.10.10.252   k8s-node2   <none>           <none>
+
 
 ### Pod multi interfaces
 
@@ -502,7 +590,7 @@ Contrail has natively the ability to create pods with multi interfaces. This exe
 Create two virtual networks `red-net` and `green-net` in Contrail
 
 ```
-$ cd ../exercise6
+$ cd ../exercise7
 
 $ cat red-green-net.yaml
 apiVersion: "k8s.cni.cncf.io/v1"

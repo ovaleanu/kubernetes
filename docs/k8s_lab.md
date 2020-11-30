@@ -350,12 +350,12 @@ $ curl 172.16.133.154:32189
 
 ### Isolation (Namespace and Custom)
 
-**Isolated Namespace** has its own default pod-network and service-network, including two new VRFs are also created for each isolated namspace. The same flat-subnets '10.32.0.0/12' and '10.96.0.0/12' are shared by the pod and service networks in the isolated namespaces. However, since the networks are with a different VRF, by default it is isolated with other NS. Pods launched in isolated NS can only talk to service and pods on the same namespace. Additional configurations, e.g. policy, is required to enable the pod to reach the network outside of the current namespace.
+**Isolated Namespace** has its own default pod-network and service-network, including two new VRFs are also created for each isolated namespace. The same flat-subnets '10.32.0.0/12' and '10.96.0.0/12' are shared by the pod and service networks in the isolated namespaces. However, since the networks are with a different VRF, by default it is isolated with other NS. Pods launched in isolated NS can only talk to service and pods on the same namespace. Additional configurations, e.g. policy, is required to enable the pod to reach the network outside of the current namespace.
 
 ![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image6.png)
 
 
-You will create two isolated namespaces `dev`, `qa` and spawn some pods in each namespace. The annotation means namspace is isolated. The namespaces will have SNAT enabled.
+You will create two isolated namespaces `dev`, `qa` and spawn some pods in each namespace. The annotation means namespace is isolated. The namespaces will have SNAT enabled.
 ```
 annotations: {
       "opencontrail.org/isolation": "true",
@@ -423,12 +423,12 @@ service/web-app-qa   ClusterIP   10.109.233.177   <none>        80/TCP    36s
 Check if you can ping using ubuntuapp pod any frontend from `qa` and `dev` namespaces
 
 ```
-$ kubectl exec ubuntuapp -- curl web-app-dev.dev-isolated
+$ kubectl exec ubuntuapp -- wget web-app-dev.dev-isolated
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
   0     0    0     0    0     0      0      0 --:--:--  0:00:05 --:--:--     0^C
 
-$ kubectl exec ubuntuapp -- curl web-app-qa.qa-isolated
+$ kubectl exec ubuntuapp -- wget web-app-qa.qa-isolated
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
   0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0^C

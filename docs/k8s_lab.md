@@ -457,13 +457,13 @@ spec:
    "type": "contrail-k8s-cni"
 }'
 
-$ kubectl create -f blue-net.yaml
+$ kubectl create -f orange-net.yaml
 ```
 
 Now you will create a pod in this virtual network
 
 ```
-$ cat blue-pod.yaml
+$ cat orange-pod.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -477,7 +477,7 @@ spec:
      image: ubuntu-upstart
 
 $ kubectl create -f orange-pod.yaml
-$ kubectl get pods -o wide| grep blue
+$ kubectl get pods -o wide| grep orange
 orange-pod            1/1     Running   0          12s    50.50.50.252    ru16-k8s-node3   <none>           <none>
 
 $ kubectl exec -it orange-pod -- bash

@@ -4,7 +4,7 @@ KubeVirt is an open-source project that offers a VM-based virtualisation option 
 
 KubeVirt can be installed using the KubeVirt operator, which manages the lifecycle of all the KubeVirt core components. More details on KubeVirt [page](https://kubevirt.io/).
 
-For my demo I will use a mainstream Kubernetes cluster with Contrail
+For my demo I will use a mainstream Kubernetes cluster with Contrail Networking
 
 ```
 $ kubectl get nodes -o wide

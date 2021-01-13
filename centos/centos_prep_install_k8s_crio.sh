@@ -1,7 +1,11 @@
 #!/bin/bash
 
+dnf -y install epel-release
+
 modprobe overlay
 modprobe br_netfilter
+echo "br_netfilter" >> /etc/modules-load.d/br_netfilter.conf
+dnf -y install iproute-tc
 
 bash -c 'cat <<EOF > /etc/sysctl.d/99-kubernetes-cri.conf
 net.bridge.bridge-nf-call-iptables  = 1
@@ -10,13 +14,16 @@ net.bridge.bridge-nf-call-ip6tables = 1
 EOF'
 
 sysctl --system
-OS="${OS:-CentOS_7}"
-VERSION="${VERSION:-1.18}"
+OS="${OS:-CentOS_8}"
+VERSION="${VERSION:-1.19}"
+
+dnf -y install 'dnf-command(copr)'
+dnf -y copr enable rhcontainerbot/container-selinux
 
 curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/devel:kubic:libcontainers:stable.repo
 curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo
 
-yum update -y && yum install -y cri-o
+dnf update -y && dnf install -y cri-o
 systemctl daemon-reload
 systemctl enable --now crio
 
@@ -37,9 +44,8 @@ setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 systemctl stop firewalld; systemctl disable firewalld
 
-yum update -y && yum install -y kubelet-1.18.9 kubeadm-1.18.9 kubectl-1.18.9 --disableexcludes=kubernetes
-systemctl enable --now kubelet
-echo "runtime-endpoint: unix:///var/run/crio/crio.sock" > /etc/crictl.yaml
+dnf update -y && dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+mkdir /var/lib/kubelet
 
 bash -c 'cat <<EOF > /var/lib/kubelet/config.yaml
 apiVersion: kubelet.config.k8s.io/v1beta1
@@ -47,5 +53,10 @@ kind: KubeletConfiguration
 cgroupDriver: systemd
 EOF'
 
-systemctl daemon-reload
-systemctl restart kubelet
+cat /dev/null > /etc/sysconfig/kubelet
+
+bash -c 'cat <<EOF > /etc/sysconfig/kubelet
+KUBELET_EXTRA_ARGS=--container-runtime=remote --cgroup-driver=systemd --container-runtime-endpoint="unix:///var/run/crio/crio.sock"
+EOF'
+
+systemctl enable --now kubelet

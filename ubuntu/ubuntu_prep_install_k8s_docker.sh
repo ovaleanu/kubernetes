@@ -45,5 +45,5 @@ deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF'
 
 apt-get update
-apt-get install -y kubelet=1.18.9-00 kubeadm=1.18.9-00 kubectl=1.18.9-00
+apt-get install -y kubelet=1.19.7-00 kubeadm=1.19.7-00 kubectl=1.19.7-00
 apt-mark hold kubelet kubeadm kubectl

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 yum -y update
-yum install -y epel-release yum-utils device-mapper-persistent-data lvm2 curl
+yum install -y epel-release yum-utils device-mapper-persistent-data lvm2 curl wget
 
 bash -c 'cat <<EOF > /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-iptables  = 1
@@ -32,7 +32,7 @@ sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 systemctl stop firewalld; systemctl disable firewalld
 yum update -y
 
-yum install -y containerd.io-1.2.13 docker-ce-18.09.9 docker-ce-cli-18.09.9
+yum install -y containerd.io-1.2.13 docker-ce-19.03.11 docker-ce-cli-19.03.11
 
 mkdir /etc/docker
 

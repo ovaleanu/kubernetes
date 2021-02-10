@@ -11,7 +11,6 @@ systemctl stop firewalld; systemctl disable firewalld
 modprobe overlay
 modprobe br_netfilter
 echo "br_netfilter" >> /etc/modules-load.d/br_netfilter.conf
-yum -y install iproute-tc
 
 bash -c 'cat <<EOF > /etc/sysctl.d/99-kubernetes-cri.conf
 net.bridge.bridge-nf-call-iptables  = 1

@@ -27,6 +27,7 @@ data:
   RABBITMQ_NODES: %MASTER_IP%
   RABBITMQ_NODE_PORT: "5673"
 #  VROUTER_GATEWAY:
+  ENCAP_PRIORITY: "MPLSoUDP,VXLAN,MPLSoGRE"
   WEBUI_NODES: %MASTER_IP%
   WEBUI_VIP: ""
 ---
@@ -128,7 +129,7 @@ spec:
       hostNetwork: true
       containers:
       - name: config-zookeeper
-        image: "hub.juniper.net/contrail/contrail-external-zookeeper:2008.121"
+        image: "hub.juniper.net/contrail/contrail-external-zookeeper:2011.138"
         imagePullPolicy: ""
         env:
         - name: NODE_TYPE
@@ -187,7 +188,7 @@ spec:
       hostNetwork: true
       containers:
       - name: contrail-configdb
-        image: "hub.juniper.net/contrail/contrail-external-cassandra:2008.121"
+        image: "hub.juniper.net/contrail/contrail-external-cassandra:2011.138"
         imagePullPolicy: ""
         env:
         - name: NODE_TYPE
@@ -201,7 +202,7 @@ spec:
         - mountPath: /var/log/cassandra
           name: configdb-logs
       - name: contrail-config-database-nodemgr
-        image: "hub.juniper.net/contrail/contrail-nodemgr:2008.121"
+        image: "hub.juniper.net/contrail/contrail-nodemgr:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -226,7 +227,7 @@ spec:
         - mountPath: /mnt
           name: docker-unix-socket
       - name: contrail-config-database-provisioner
-        image: "hub.juniper.net/contrail/contrail-provisioner:2008.121"
+        image: "hub.juniper.net/contrail/contrail-provisioner:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -294,13 +295,13 @@ spec:
       hostNetwork: true
       initContainers:
       - name: contrail-node-init
-        image: "hub.juniper.net/contrail/contrail-node-init:2008.121"
+        image: "hub.juniper.net/contrail/contrail-node-init:2011.138"
         imagePullPolicy: ""
         securityContext:
           privileged: true
         env:
         - name: CONTRAIL_STATUS_IMAGE
-          value: "hub.juniper.net/contrail/contrail-status:2008.121"
+          value: "hub.juniper.net/contrail/contrail-status:2011.138"
         envFrom:
         - configMapRef:
             name: env
@@ -309,7 +310,7 @@ spec:
           name: host-usr-bin
       containers:
       - name: contrail-analytics-api
-        image: "hub.juniper.net/contrail/contrail-analytics-api:2008.121"
+        image: "hub.juniper.net/contrail/contrail-analytics-api:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -320,7 +321,7 @@ spec:
         - mountPath: /var/log/contrail
           name: analytics-logs
       - name: contrail-analytics-collector
-        image: "hub.juniper.net/contrail/contrail-analytics-collector:2008.121"
+        image: "hub.juniper.net/contrail/contrail-analytics-collector:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -329,7 +330,7 @@ spec:
         - mountPath: /var/log/contrail
           name: analytics-logs
       - name: contrail-analytics-nodemgr
-        image: "hub.juniper.net/contrail/contrail-nodemgr:2008.121"
+        image: "hub.juniper.net/contrail/contrail-nodemgr:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -352,7 +353,7 @@ spec:
         - mountPath: /mnt
           name: docker-unix-socket
       - name: contrail-analytics-provisioner
-        image: "hub.juniper.net/contrail/contrail-provisioner:2008.121"
+        image: "hub.juniper.net/contrail/contrail-provisioner:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -415,13 +416,13 @@ spec:
       hostNetwork: true
       initContainers:
       - name: contrail-node-init
-        image: "hub.juniper.net/contrail/contrail-node-init:2008.121"
+        image: "hub.juniper.net/contrail/contrail-node-init:2011.138"
         imagePullPolicy: ""
         securityContext:
           privileged: true
         env:
         - name: CONTRAIL_STATUS_IMAGE
-          value: "hub.juniper.net/contrail/contrail-status:2008.121"
+          value: "hub.juniper.net/contrail/contrail-status:2011.138"
         envFrom:
         - configMapRef:
             name: env
@@ -430,7 +431,7 @@ spec:
           name: host-usr-bin
       containers:
       - name: contrail-controller-control
-        image: "hub.juniper.net/contrail/contrail-controller-control-control:2008.121"
+        image: "hub.juniper.net/contrail/contrail-controller-control-control:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -439,7 +440,7 @@ spec:
         - mountPath: /var/log/contrail
           name: control-logs
       - name: contrail-controller-control-dns
-        image: "hub.juniper.net/contrail/contrail-controller-control-dns:2008.121"
+        image: "hub.juniper.net/contrail/contrail-controller-control-dns:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -450,7 +451,7 @@ spec:
         - mountPath: /var/log/contrail
           name: control-logs
       - name: contrail-controller-control-named
-        image: "hub.juniper.net/contrail/contrail-controller-control-named:2008.121"
+        image: "hub.juniper.net/contrail/contrail-controller-control-named:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -463,7 +464,7 @@ spec:
         - mountPath: /var/log/contrail
           name: control-logs
       - name: contrail-controller-nodemgr
-        image: "hub.juniper.net/contrail/contrail-nodemgr:2008.121"
+        image: "hub.juniper.net/contrail/contrail-nodemgr:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -486,7 +487,7 @@ spec:
         - mountPath: /mnt
           name: docker-unix-socket
       - name: contrail-controller-provisioner
-        image: "hub.juniper.net/contrail/contrail-provisioner:2008.121"
+        image: "hub.juniper.net/contrail/contrail-provisioner:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -551,13 +552,13 @@ spec:
       hostNetwork: true
       initContainers:
       - name: contrail-node-init
-        image: "hub.juniper.net/contrail/contrail-node-init:2008.121"
+        image: "hub.juniper.net/contrail/contrail-node-init:2011.138"
         imagePullPolicy: ""
         securityContext:
           privileged: true
         env:
         - name: CONTRAIL_STATUS_IMAGE
-          value: "hub.juniper.net/contrail/contrail-status:2008.121"
+          value: "hub.juniper.net/contrail/contrail-status:2011.138"
         envFrom:
         - configMapRef:
             name: env
@@ -566,7 +567,7 @@ spec:
           name: host-usr-bin
       containers:
       - name: contrail-controller-config-api
-        image: "hub.juniper.net/contrail/contrail-controller-config-api:2008.121"
+        image: "hub.juniper.net/contrail/contrail-controller-config-api:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -577,7 +578,7 @@ spec:
         - mountPath: /var/log/contrail
           name: config-logs
       - name: contrail-controller-config-devicemgr
-        image: "hub.juniper.net/contrail/contrail-controller-config-devicemgr:2008.121"
+        image: "hub.juniper.net/contrail/contrail-controller-config-devicemgr:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -588,7 +589,7 @@ spec:
         - mountPath: /var/log/contrail
           name: config-logs
       - name: contrail-controller-config-schema
-        image: "hub.juniper.net/contrail/contrail-controller-config-schema:2008.121"
+        image: "hub.juniper.net/contrail/contrail-controller-config-schema:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -599,7 +600,7 @@ spec:
         - mountPath: /var/log/contrail
           name: config-logs
       - name: contrail-controller-config-svcmonitor
-        image: "hub.juniper.net/contrail/contrail-controller-config-svcmonitor:2008.121"
+        image: "hub.juniper.net/contrail/contrail-controller-config-svcmonitor:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -610,7 +611,7 @@ spec:
         - mountPath: /var/log/contrail
           name: config-logs
       - name: contrail-controller-config-nodemgr
-        image: "hub.juniper.net/contrail/contrail-nodemgr:2008.121"
+        image: "hub.juniper.net/contrail/contrail-nodemgr:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -639,7 +640,7 @@ spec:
         - mountPath: /mnt
           name: docker-unix-socket
       - name: contrail-controller-config-provisioner
-        image: "hub.juniper.net/contrail/contrail-provisioner:2008.121"
+        image: "hub.juniper.net/contrail/contrail-provisioner:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -704,13 +705,13 @@ spec:
       hostNetwork: true
       initContainers:
       - name: contrail-node-init
-        image: "hub.juniper.net/contrail/contrail-node-init:2008.121"
+        image: "hub.juniper.net/contrail/contrail-node-init:2011.138"
         imagePullPolicy: ""
         securityContext:
           privileged: true
         env:
         - name: CONTRAIL_STATUS_IMAGE
-          value: "hub.juniper.net/contrail/contrail-status:2008.121"
+          value: "hub.juniper.net/contrail/contrail-status:2011.138"
         envFrom:
         - configMapRef:
             name: env
@@ -719,7 +720,7 @@ spec:
           name: host-usr-bin
       containers:
       - name: contrail-controller-webui-job
-        image: "hub.juniper.net/contrail/contrail-controller-webui-job:2008.121"
+        image: "hub.juniper.net/contrail/contrail-controller-webui-job:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -728,7 +729,7 @@ spec:
         - mountPath: /var/log/contrail
           name: webui-logs
       - name: contrail-controller-webui-web
-        image: "hub.juniper.net/contrail/contrail-controller-webui-web:2008.121"
+        image: "hub.juniper.net/contrail/contrail-controller-webui-web:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -830,7 +831,7 @@ spec:
       hostNetwork: true
       containers:
       - name: rabbitmq
-        image: "hub.juniper.net/contrail/contrail-external-rabbitmq:2008.121"
+        image: "hub.juniper.net/contrail/contrail-external-rabbitmq:2011.138"
         imagePullPolicy: ""
         env:
         - name: NODE_TYPE
@@ -889,13 +890,13 @@ spec:
       hostNetwork: true
       initContainers:
       - name: contrail-node-init
-        image: "hub.juniper.net/contrail/contrail-node-init:2008.121"
+        image: "hub.juniper.net/contrail/contrail-node-init:2011.138"
         imagePullPolicy: ""
         securityContext:
           privileged: true
         env:
         - name: CONTRAIL_STATUS_IMAGE
-          value: "hub.juniper.net/contrail/contrail-status:2008.121"
+          value: "hub.juniper.net/contrail/contrail-status:2011.138"
         envFrom:
         - configMapRef:
             name: env
@@ -904,7 +905,7 @@ spec:
           name: host-usr-bin
       containers:
       - name: contrail-kube-manager
-        image: "hub.juniper.net/contrail/contrail-kubernetes-kube-manager:2008.121"
+        image: "hub.juniper.net/contrail/contrail-kubernetes-kube-manager:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -957,13 +958,13 @@ spec:
       hostNetwork: true
       initContainers:
       - name: contrail-node-init
-        image: "hub.juniper.net/contrail/contrail-node-init:2008.121"
+        image: "hub.juniper.net/contrail/contrail-node-init:2011.138"
         imagePullPolicy: ""
         securityContext:
           privileged: true
         env:
         - name: CONTRAIL_STATUS_IMAGE
-          value: "hub.juniper.net/contrail/contrail-status:2008.121"
+          value: "hub.juniper.net/contrail/contrail-status:2011.138"
         envFrom:
         - configMapRef:
             name: env
@@ -971,7 +972,7 @@ spec:
         - mountPath: /host/usr/bin
           name: host-usr-bin
       - name: contrail-vrouter-kernel-init
-        image: "hub.juniper.net/contrail/contrail-vrouter-kernel-init:2008.121"
+        image: "hub.juniper.net/contrail/contrail-vrouter-kernel-init:2011.138"
         imagePullPolicy: ""
         securityContext:
           privileged: true
@@ -988,7 +989,7 @@ spec:
         - mountPath: /host/bin
           name: host-bin
       - name: contrail-kubernetes-cni-init
-        image: "hub.juniper.net/contrail/contrail-kubernetes-cni-init:2008.121"
+        image: "hub.juniper.net/contrail/contrail-kubernetes-cni-init:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -1006,7 +1007,7 @@ spec:
           name: agent-logs
       containers:
       - name: contrail-vrouter-agent
-        image: "hub.juniper.net/contrail/contrail-vrouter-agent:2008.121"
+        image: "hub.juniper.net/contrail/contrail-vrouter-agent:2011.138"
         imagePullPolicy: ""
         # TODO: Priveleged mode is requied because w/o it the device /dev/net/tun
         # is not present in the container. The mounting it into container
@@ -1041,7 +1042,7 @@ spec:
         - mountPath: /tmp/serviceaccount
           name: pod-secret
       - name: contrail-agent-nodemgr
-        image: "hub.juniper.net/contrail/contrail-nodemgr:2008.121"
+        image: "hub.juniper.net/contrail/contrail-nodemgr:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:
@@ -1062,7 +1063,7 @@ spec:
         - mountPath: /mnt
           name: docker-unix-socket
       - name: contrail-agent-provisioner
-        image: "hub.juniper.net/contrail/contrail-provisioner:2008.121"
+        image: "hub.juniper.net/contrail/contrail-provisioner:2011.138"
         imagePullPolicy: ""
         envFrom:
         - configMapRef:

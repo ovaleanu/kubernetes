@@ -55,5 +55,5 @@ mkdir -p /etc/systemd/system/docker.service.d
 systemctl daemon-reload
 systemctl enable --now docker
 
-yum install -y kubelet-1.18.9 kubeadm-1.18.9 kubectl-1.18.9 --disableexcludes=kubernetes
+yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
 systemctl enable --now kubelet

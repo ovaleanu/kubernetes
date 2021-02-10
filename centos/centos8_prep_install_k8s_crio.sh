@@ -2,6 +2,12 @@
 
 dnf -y install epel-release
 
+sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+swapoff -a
+setenforce 0
+sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+systemctl stop firewalld; systemctl disable firewalld
+
 modprobe overlay
 modprobe br_netfilter
 echo "br_netfilter" >> /etc/modules-load.d/br_netfilter.conf
@@ -14,8 +20,9 @@ net.bridge.bridge-nf-call-ip6tables = 1
 EOF'
 
 sysctl --system
+
 OS="${OS:-CentOS_8}"
-VERSION="${VERSION:-1.19}"
+VERSION="${VERSION:-1.20}"
 
 dnf -y install 'dnf-command(copr)'
 dnf -y copr enable rhcontainerbot/container-selinux
@@ -23,7 +30,7 @@ dnf -y copr enable rhcontainerbot/container-selinux
 curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/devel:kubic:libcontainers:stable.repo
 curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo
 
-dnf update -y && dnf install -y cri-o
+dnf install -y cri-o
 systemctl daemon-reload
 systemctl enable --now crio
 
@@ -37,12 +44,6 @@ repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 exclude=kubelet kubeadm kubectl
 EOF'
-
-sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
-swapoff -a
-setenforce 0
-sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-systemctl stop firewalld; systemctl disable firewalld
 
 dnf update -y && dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
 mkdir /var/lib/kubelet

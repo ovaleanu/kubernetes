@@ -1,6 +1,7 @@
 #!/bin/bash
 
-dnf -y install epel-release
+dnf -y update
+dnf -y install epel-release curl wget
 
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 swapoff -a
@@ -61,3 +62,4 @@ KUBELET_EXTRA_ARGS=--container-runtime=remote --cgroup-driver=systemd --containe
 EOF'
 
 systemctl enable --now kubelet
+kubeadm config images pull

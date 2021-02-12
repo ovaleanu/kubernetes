@@ -19,17 +19,10 @@ net.bridge.bridge-nf-call-ip6tables = 1
 EOF'
 
 sysctl --system
-apt-get update && apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
-add-apt-repository \
-    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-    $(lsb_release -cs) \
-    stable"
-
-apt-get update && apt-get install -y containerd.io
+apt-get update && apt-get install -y containerd
 mkdir -p /etc/containerd
-containerd config default > /etc/containerd/config.toml
+containerd config default | sudo tee /etc/containerd/config.toml
 systemctl restart containerd
 
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
@@ -39,8 +32,10 @@ deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF'
 
 apt-get update
-apt-get install -y kubelet=1.18.9-00 kubeadm=1.18.9-00 kubectl=1.18.9-00
-sudo apt-mark hold kubelet kubeadm kubectl
+apt-get install -y kubelet kubeadm kubectl
+apt-mark hold kubelet kubeadm kubectl
 
 echo "runtime-endpoint: unix:///run/containerd/containerd.sock" > /etc/crictl.yaml
 systemctl daemon-reload
+
+kubeadm config images pull

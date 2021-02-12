@@ -1,6 +1,7 @@
 #!/bin/bash
 
-yum -y install epel-release
+yum -y update
+yum -y install epel-release curl wget
 
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 swapoff -a
@@ -55,5 +56,6 @@ cat /dev/null > /etc/sysconfig/kubelet
 bash -c 'cat <<EOF > /etc/sysconfig/kubelet
 KUBELET_EXTRA_ARGS=--container-runtime=remote --cgroup-driver=systemd --container-runtime-endpoint="unix:///var/run/crio/crio.sock"
 EOF'
-
 systemctl enable --now kubelet
+
+kubeadm config images pull

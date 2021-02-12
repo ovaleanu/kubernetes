@@ -7,7 +7,7 @@ bash -c 'cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF'
-sudo sysctl --system
+sysctl --system
 
 apt-get update && apt-get install -y apt-transport-https ca-certificates curl software-properties-common gnupg2
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
@@ -47,3 +47,5 @@ EOF'
 apt-get update
 apt-get install -y kubelet=1.19.7-00 kubeadm=1.19.7-00 kubectl=1.19.7-00
 apt-mark hold kubelet kubeadm kubectl
+
+kubeadm config images pull

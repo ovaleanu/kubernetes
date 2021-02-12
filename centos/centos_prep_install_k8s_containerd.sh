@@ -41,7 +41,7 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF'
 
-yum update -y && yum install -y kubelet kubeadm kubectl9 --disableexcludes=kubernetes
+yum update -y && yyum install -y kubelet-1.19.7 kubeadm-1.19.7 kubectl-1.19.7 --disableexcludes=kubernetes
 systemctl enable --now kubelet
 echo "runtime-endpoint: unix:///run/containerd/containerd.sock" > /etc/crictl.yaml
 systemctl daemon-reload

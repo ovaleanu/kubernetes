@@ -18,7 +18,7 @@ net.ipv4.ip_forward                 = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 EOF'
 
-sysctl --system
+sudo sysctl --system
 
 OS="${OS:-xUbuntu_20.04}"
 VERSION="${VERSION:-1.20}"
@@ -26,6 +26,7 @@ VERSION="${VERSION:-1.20}"
 bash -c 'cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
 deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /
 EOF'
+
 bash -c 'cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
 deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /
 EOF'

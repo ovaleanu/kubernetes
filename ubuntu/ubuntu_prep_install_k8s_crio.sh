@@ -1,6 +1,6 @@
 #!/bin/bash
 
-apt-get update
+apt update
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 swapoff -a
 
@@ -34,21 +34,20 @@ EOF'
 curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
 curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers-cri-o.gpg add -
 
-apt-get update
-apt-get install -y cri-o cri-o-runc
-systemctl daemon-reload
-systemctl enable --now crio
-
-apt-get -y install curl apt-transport-https
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 bash -c 'cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
 deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF'
 
-apt-get update
-apt-get install -y kubelet=1.19.7-00 kubeadm=1.19.7-00 kubectl=1.19.7-00
+apt update
+apt install -y cri-o cri-o-runc
+systemctl daemon-reload
+systemctl enable --now crio
+
+apt install -y apt-transport-https
+apt install -y kubelet=1.19.7-00 kubeadm=1.19.7-00 kubectl=1.19.7-00
 apt-mark hold kubelet kubeadm kubectl
-mkdir /var/lib/kubelet
+mkdir -p /var/lib/kubelet
 bash -c 'cat <<EOF > /var/lib/kubelet/config.yaml
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration

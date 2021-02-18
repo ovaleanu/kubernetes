@@ -354,3 +354,129 @@ Getting pods  in context capi-azure
 NAME            TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
 nginx-service   NodePort   10.100.35.173   <none>        80:31129/TCP   27s
 ```
+
+### Initialization for AWS EKS
+
+Have a K8s Kind cluster up and running
+
+Export AWS region and credentials
+
+```
+❯ export AWS_REGION=eu-west-2
+❯ export AWS_ACCESS_KEY_ID=<your-key>
+❯ export AWS_SECRET_ACCESS_KEY=<your-key>
+```
+Create the bootstrap CloudFormation stack. For EKS additional permissions are required to the controller and also to create a default IAM role to be used by the EKS control plane.
+
+```
+❯ clusterawsadm bootstrap iam create-cloudformation-stack  --config eks.config
+Attempting to create AWS CloudFormation stack cluster-api-provider-aws-sigs-k8s-io
+
+Following resources are in the stack:
+
+Resource                  |Type                                                                                |Status
+AWS::IAM::Group           |cluster-api-provider-aws-s-AWSIAMGroupBootstrapper-2UOEJM9HOS5U                     |CREATE_COMPLETE
+AWS::IAM::InstanceProfile |control-plane.cluster-api-provider-aws.sigs.k8s.io                                  |CREATE_COMPLETE
+AWS::IAM::InstanceProfile |controllers.cluster-api-provider-aws.sigs.k8s.io                                    |CREATE_COMPLETE
+AWS::IAM::InstanceProfile |nodes.cluster-api-provider-aws.sigs.k8s.io                                          |CREATE_COMPLETE
+AWS::IAM::ManagedPolicy   |arn:aws:iam::425922652451:policy/control-plane.cluster-api-provider-aws.sigs.k8s.io |CREATE_COMPLETE
+AWS::IAM::ManagedPolicy   |arn:aws:iam::425922652451:policy/nodes.cluster-api-provider-aws.sigs.k8s.io         |CREATE_COMPLETE
+AWS::IAM::ManagedPolicy   |arn:aws:iam::425922652451:policy/controllers.cluster-api-provider-aws.sigs.k8s.io   |CREATE_COMPLETE
+AWS::IAM::Role            |control-plane.cluster-api-provider-aws.sigs.k8s.io                                  |CREATE_COMPLETE
+AWS::IAM::Role            |controllers.cluster-api-provider-aws.sigs.k8s.io                                    |CREATE_COMPLETE
+AWS::IAM::Role            |eks-controlplane.cluster-api-provider-aws.sigs.k8s.io                               |CREATE_COMPLETE
+AWS::IAM::Role            |nodes.cluster-api-provider-aws.sigs.k8s.io                                          |CREATE_COMPLETE
+AWS::IAM::User            |bootstrapper.cluster-api-provider-aws.sigs.k8s.io                                   |CREATE_COMPLETE
+
+export AWS_B64ENCODED_CREDENTIALS=$(clusterawsadm bootstrap credentials encode-as-profile)
+```
+where `config.eks` contains
+
+```
+apiVersion: bootstrap.aws.infrastructure.cluster.x-k8s.io/v1alpha1
+kind: AWSIAMConfiguration
+spec:
+  bootstrapUser:
+    enable: true
+  eks:
+    enable: true
+    iamRoleCreation: false
+    defaultControlPlaneRole:
+      disable: false
+```
+Install the Cluster API Provider for AWS with EKS support
+```
+❯ export EXP_EKS=true
+
+❯ clusterctl init --infrastructure=aws --control-plane=aws-eks --bootstrap=aws-eks
+
+❯ k get po -A
+NAMESPACE                       NAME                                                         READY   STATUS    RESTARTS   AGE
+calico-system                   calico-kube-controllers-56689cf96-4g8bt                      1/1     Running   1          23h
+calico-system                   calico-node-glhhv                                            1/1     Running   1          23h
+calico-system                   calico-node-h7w6q                                            1/1     Running   2          23h
+calico-system                   calico-node-kq4vx                                            1/1     Running   1          23h
+calico-system                   calico-node-s4wj2                                            1/1     Running   1          23h
+calico-system                   calico-typha-7f75959c74-6zfmr                                1/1     Running   2          23h
+calico-system                   calico-typha-7f75959c74-bkvmt                                1/1     Running   2          23h
+calico-system                   calico-typha-7f75959c74-dwgm9                                1/1     Running   2          23h
+calico-system                   calico-typha-7f75959c74-kcnsg                                1/1     Running   2          23h
+capa-eks-bootstrap-system       capa-eks-bootstrap-controller-manager-7dd84b7864-526vs       2/2     Running   0          61s
+capa-eks-control-plane-system   capa-eks-control-plane-controller-manager-68fbd7cb94-z87kg   2/2     Running   0          61s
+capa-system                     capa-controller-manager-68f77b4fc5-dvhl5                     2/2     Running   0          59s
+capi-system                     capi-controller-manager-5cd969bf55-kjrl5                     2/2     Running   0          62s
+capi-webhook-system             capa-controller-manager-66577dffd9-kvlt7                     2/2     Running   0          60s
+capi-webhook-system             capa-eks-control-plane-controller-manager-68bb6bddc8-fcvgs   2/2     Running   0          61s
+capi-webhook-system             capi-controller-manager-68c9ff8646-dvsq2                     2/2     Running   0          62s
+cert-manager                    cert-manager-cainjector-fc6c787db-674ld                      1/1     Running   0          83s
+cert-manager                    cert-manager-d994d94d7-w4njk                                 1/1     Running   0          83s
+cert-manager                    cert-manager-webhook-845d9df8bf-2lqjw                        1/1     Running   0          83s
+kube-system                     coredns-f9fd979d6-9jgzq                                      1/1     Running   1          23h
+---
+```
+Import your ssh public key in AWS
+
+```
+❯ aws ec2 import-key-pair --key-name default --public-key-material fileb://~/.ssh/id_rsa.pub
+❯ export AWS_SSH_KEY_NAME=default
+```
+Define the EKS version, instance type for worker nodes and generate the cluster yaml file
+
+```
+export AWS_REGION=eu-west-2
+export AWS_SSH_KEY_NAME=default
+export KUBERNETES_VERSION=v1.18.9
+export WORKER_MACHINE_COUNT=2
+export AWS_NODE_MACHINE_TYPE=t2.medium
+
+clusterctl config cluster managed-test --flavor eks > capi-eks.yaml
+```
+Apply the cluster yaml file for creating the EKS cluster
+
+```
+❯ kubectl apply -f capi-eks.yaml
+cluster.cluster.x-k8s.io/managed-test created
+awsmanagedcluster.infrastructure.cluster.x-k8s.io/managed-test created
+awsmanagedcontrolplane.controlplane.cluster.x-k8s.io/managed-test-control-plane created
+machinedeployment.cluster.x-k8s.io/managed-test-md-0 created
+awsmachinetemplate.infrastructure.cluster.x-k8s.io/managed-test-md-0 created
+eksconfigtemplate.bootstrap.cluster.x-k8s.io/managed-test-md-0 created
+```
+
+Check status
+
+```
+❯ k get awsmanagedcluster
+NAME           CLUSTER        READY   VPC
+managed-test   managed-test   true
+❯ k get awsmanagedcontrolplane
+NAME                         CLUSTER        READY   VPC                     BASTION IP
+managed-test-control-plane   managed-test   true    vpc-0e25cdf9435f1be9f
+❯ k get cluster
+NAME           PHASE
+managed-test   Provisioned
+❯ k get machines
+NAME                                 PROVIDERID   PHASE          VERSION
+managed-test-md-0-66b88c7d78-gblxs                Provisioning   v1.18.9
+managed-test-md-0-66b88c7d78-mh5lw                Provisioning   v1.18.9
+```

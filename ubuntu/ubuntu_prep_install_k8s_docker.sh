@@ -9,7 +9,7 @@ net.bridge.bridge-nf-call-iptables = 1
 EOF'
 sysctl --system
 
-apt-get update && apt-get install -y apt-transport-https ca-certificates curl software-properties-common gnupg2
+apt-get install -y apt-transport-https ca-certificates curl software-properties-common gnupg2
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
 add-apt-repository \
@@ -30,7 +30,7 @@ bash -c 'cat <<EOF > /etc/docker/daemon.json
 EOF'
 
 apt-get update && apt-get install -y \
-  containerd.io=1.2.13-2 \
+  containerd.io \
   docker-ce=5:19.03.11~3-0~ubuntu-$(lsb_release -cs) \
   docker-ce-cli=5:19.03.11~3-0~ubuntu-$(lsb_release -cs)
 

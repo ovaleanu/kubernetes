@@ -38,7 +38,7 @@ data:
   WEBUI_VIP: ""
   KUBERNETES_POD_SUBNETS: "11.32.0.0/12"
   KUBERNETES_SERVICE_SUBNETS: "11.96.0.0/12"
-  KUBERNETES_CLUSTER_NAME: "k8s-contrail-2"
+  KUBERNETES_CLUSTER_NAME: "k8s2"
 ---
 # default params will be set in provisioner environment
 apiVersion: v1

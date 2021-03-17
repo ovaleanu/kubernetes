@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+sed -i '/swap/ s/^\(.*\)$/#\1/g' /etc/fstab
 swapoff -a
 
 bash -c 'cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf

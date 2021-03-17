@@ -3,7 +3,7 @@
 yum -y update
 yum -y install epel-release curl wget
 
-sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+sed -i '/swap/ s/^\(.*\)$/#\1/g' /etc/fstab
 swapoff -a
 setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config

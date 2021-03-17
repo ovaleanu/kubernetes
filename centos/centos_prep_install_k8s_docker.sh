@@ -2,7 +2,7 @@
 
 yum -y update
 yum install -y epel-release yum-utils device-mapper-persistent-data lvm2 curl wget
-sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+sed -i '/swap/ s/^\(.*\)$/#\1/g' /etc/fstab
 swapoff -a
 setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config

@@ -1415,7 +1415,7 @@ spec:
         - mountPath: /host/usr/bin
           name: host-usr-bin
       - name: contrail-vrouter-kernel-init
-        image: "hub.juniper.net/contrail/contrail-vrouter-kernel-init:2011.138"
+        image: "hub.juniper.net/contrail/contrail-vrouter-kernel-build-init:2011.138"
         imagePullPolicy: ""
         securityContext:
           privileged: true

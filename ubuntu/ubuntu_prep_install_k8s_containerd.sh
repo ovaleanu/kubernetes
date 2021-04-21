@@ -32,10 +32,11 @@ mkdir -p /etc/containerd
 containerd config default | sudo tee /etc/containerd/config.toml
 systemctl restart containerd
 
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 bash -c 'cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
 deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF'
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
 
 apt-get update
 apt-get install -y kubelet kubeadm kubectl

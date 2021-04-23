@@ -20,19 +20,19 @@ EOF'
 
 sudo sysctl --system
 
-OS="${OS:-xUbuntu_20.04}"
-VERSION="${VERSION:-1.20}"
+export OS="${OS:-xUbuntu_20.04}"
+export VERSION="${VERSION:-1.20}"
 
 bash -c 'cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /
+deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/${OS}/ /
 EOF'
 
-bash -c 'cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
-deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /
+bash -c 'cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:${VERSION}.list
+deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/${VERSION}/${OS}/ /
 EOF'
 
-curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
-curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers-cri-o.gpg add -
+curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/${OS}/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
+curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:${VERSION}/${OS}/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers-cri-o.gpg add -
 
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 bash -c 'cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
@@ -46,7 +46,7 @@ systemctl daemon-reload
 systemctl enable --now crio
 
 apt install -y apt-transport-https
-apt install -y kubelet=1.19.7-00 kubeadm=1.19.7-00 kubectl=1.19.7-00
+apt install -y kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
 mkdir -p /var/lib/kubelet
 bash -c 'cat <<EOF > /var/lib/kubelet/config.yaml

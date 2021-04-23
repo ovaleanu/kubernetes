@@ -22,14 +22,14 @@ EOF'
 
 sysctl --system
 
-OS="${OS:-CentOS_8}"
-VERSION="${VERSION:-1.20}"
+export OS="${OS:-CentOS_8}"
+export VERSION="${VERSION:-1.20}"
 
 dnf -y install 'dnf-command(copr)'
 dnf -y copr enable rhcontainerbot/container-selinux
 
-curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/devel:kubic:libcontainers:stable.repo
-curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo
+curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/${OS}/devel:kubic:libcontainers:stable.repo
+curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:${VERSION}.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:${VERSION}/${OS}/devel:kubic:libcontainers:stable:cri-o:${VERSION}.repo
 
 dnf install -y cri-o
 systemctl daemon-reload

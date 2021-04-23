@@ -14,11 +14,11 @@ modprobe br_netfilter
 echo "br_netfilter" >> /etc/modules-load.d/br_netfilter.conf
 dnf -y install iproute-tc
 
-bash -c 'cat <<EOF > /etc/sysctl.d/99-kubernetes-cri.conf
+cat <<EOF > /etc/sysctl.d/99-kubernetes-cri.conf
 net.bridge.bridge-nf-call-iptables  = 1
 net.ipv4.ip_forward                 = 1
 net.bridge.bridge-nf-call-ip6tables = 1
-EOF'
+EOF
 
 sysctl --system
 
@@ -35,7 +35,7 @@ dnf install -y cri-o
 systemctl daemon-reload
 systemctl enable --now crio
 
-bash -c 'cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
 baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
@@ -44,22 +44,22 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 exclude=kubelet kubeadm kubectl
-EOF'
+EOF
 
 dnf update -y && dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
 mkdir /var/lib/kubelet
 
-bash -c 'cat <<EOF > /var/lib/kubelet/config.yaml
+cat <<EOF > /var/lib/kubelet/config.yaml
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 cgroupDriver: systemd
-EOF'
+EOF
 
 cat /dev/null > /etc/sysconfig/kubelet
 
-bash -c 'cat <<EOF > /etc/sysconfig/kubelet
+cat <<EOF > /etc/sysconfig/kubelet
 KUBELET_EXTRA_ARGS=--container-runtime=remote --cgroup-driver=systemd --container-runtime-endpoint="unix:///var/run/crio/crio.sock"
-EOF'
+EOF
 
 systemctl enable --now kubelet
 kubeadm config images pull

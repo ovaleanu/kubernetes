@@ -29,10 +29,7 @@ bash -c 'cat <<EOF > /etc/docker/daemon.json
 }
 EOF'
 
-apt-get update && apt-get install -y \
-  containerd.io \
-  docker-ce=5:19.03.11~3-0~ubuntu-$(lsb_release -cs) \
-  docker-ce-cli=5:19.03.11~3-0~ubuntu-$(lsb_release -cs)
+apt-get update && apt-get install -y containerd.io docker-ce docker-ce-cli
 
 mkdir -p /etc/systemd/system/docker.service.d
 systemctl daemon-reload
@@ -45,7 +42,7 @@ deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF'
 
 apt-get update
-apt-get install -y kubelet=1.19.7-00 kubeadm=1.19.7-00 kubectl=1.19.7-00
+apt-get install -y kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
 
 kubeadm config images pull

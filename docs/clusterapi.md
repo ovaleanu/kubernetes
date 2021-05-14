@@ -325,7 +325,7 @@ capi-azure-uk-md-0-mhdrm            Ready    <none>   84m   v1.18.9
 capi-azure-uk-md-0-zzx8g            Ready    <none>   84m   v1.18.9
 ```
 
-From this point I am following the steps documented [here](https://github.com/ovaleanujnpr/kubernetes/blob/master/docs/kubefed_contrail.md).
+From this point I am following the steps documented [here](https://github.com/ovaleanu/kubernetes/blob/master/docs/kubefed_contrail.md).
 
 ```
 ❯ kubectl get kubefedclusters -n kube-federation-system

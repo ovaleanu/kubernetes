@@ -9,7 +9,7 @@ What I want to demo?
 3. Deploy a simple app via the host cluster and federate it on the other cluster
 4. Establish end-to-end connectivity to the deployed app.
 
-Both clusters are running Kubernetes v.18.8. Please refer to installation procedures for mainstream [Kubernetes with Contrail](https://github.com/ovaleanujnpr/Kubernetes/wiki/Installing-Kubernetes-with-Contrail).
+Both clusters are running Kubernetes v.18.8. Please refer to installation procedures for mainstream [Kubernetes with Contrail](https://github.com/ovaleanu/Kubernetes/wiki/Installing-Kubernetes-with-Contrail).
 
 One of the clusters will be the _Host Cluster_. This is the cluster which is used to expose the KubeFed API and run the KubeFed Control Plane.
 The other cluster will be _Member Custer_. This is the cluster which is registered with the KubeFed API and that KubeFed controllers have authentication credentials for. The _Host Cluster_ can also be a _Member Cluster_.

@@ -3,7 +3,7 @@
 Download the lab folder.
 
 ```
-$ git clone https://github.com/ovaleanujnpr/k8-lab
+$ git clone https://github.com/ovaleanu/k8-lab
 $ cd k8s-lab
 ```
 
@@ -63,17 +63,17 @@ token:      eyJhbGciOiJSUzI1NiIsImtpZCI6InBGUmN4eEczUVpGYlp2TnU3T05Cc1FtNnBIZTEy
 
 Access Kubernetes Dasboard using a worker node ip and the port above, https://<node_ip>:30373. (Your port will be different)
 
-![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image1.png)
+![](https://github.com/ovaleanu/kubernetes/blob/master/images/k8s-image1.png)
 
 Copy the token, paste it in UI and Login
 
-![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image2.png)
+![](https://github.com/ovaleanu/kubernetes/blob/master/images/k8s-image2.png)
 
 ### Load Balancers - Replication and Services
 
 You will create an ubuntu pod and three ReplicationControllers.
 
-![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image3.png)
+![](https://github.com/ovaleanu/kubernetes/blob/master/images/k8s-image3.png)
 
 ```
 $ cd exercise1
@@ -113,7 +113,7 @@ root@ubuntuapp:/# apt install curl
 
 Now create a load balancing construct, by exposing the frontend service
 
-![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image4.png)
+![](https://github.com/ovaleanu/kubernetes/blob/master/images/k8s-image4.png)
 
 ```
 $ kubectl expose rc/frontend
@@ -174,7 +174,7 @@ $ kubectl exec ubuntuapp -- curl frontend
 
 One evolution of previous construct is per-URL load balancing
 
-![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image5.png)
+![](https://github.com/ovaleanu/kubernetes/blob/master/images/k8s-image5.png)
 
 ```
 $ cd ../exercise2
@@ -352,7 +352,7 @@ $ curl 172.16.133.154:32189
 
 **Isolated Namespace** has its own default pod-network and service-network, including two new VRFs are also created for each isolated namespace. The same flat-subnets '10.32.0.0/12' and '10.96.0.0/12' are shared by the pod and service networks in the isolated namespaces. However, since the networks are with a different VRF, by default it is isolated with other NS. Pods launched in isolated NS can only talk to service and pods on the same namespace. Additional configurations, e.g. policy, is required to enable the pod to reach the network outside of the current namespace.
 
-![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image6.png)
+![](https://github.com/ovaleanu/kubernetes/blob/master/images/k8s-image6.png)
 
 
 You will create two isolated namespaces `dev`, `qa` and spawn some pods in each namespace. The annotation means namespace is isolated. The namespaces will have SNAT enabled.
@@ -537,10 +537,10 @@ spec:
 
 In Contrail UI it will look like this
 
-![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image7.png)
+![](https://github.com/ovaleanu/kubernetes/blob/master/images/k8s-image7.png)
 
 
-![](https://github.com/ovaleanujnpr/kubernetes/blob/master/images/k8s-image8.png)
+![](https://github.com/ovaleanu/kubernetes/blob/master/images/k8s-image8.png)
 
 
 Create a pod in each of the virtual networks

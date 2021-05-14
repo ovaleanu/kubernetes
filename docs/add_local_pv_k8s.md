@@ -60,7 +60,7 @@ $ cd sig-storage-local-static-provisioner
 $ cp helm/provisioner/values.yaml .
 ```
 
-Edit values.yaml for your enviroment. Here it is an [example](https://github.com/ovaleanujnpr/kubernetes/blob/master/storage/values.yaml) of what I used.
+Edit values.yaml for your enviroment. Here it is an [example](https://github.com/ovaleanu/kubernetes/blob/master/storage/values.yaml) of what I used.
 
 Create a namespace for storage class
 
